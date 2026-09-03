@@ -406,11 +406,13 @@
       const res = await fetch(`${state.apiBase}/api/config`);
       if (res.ok) {
         const config = await res.json();
-        if (elements.statusGee) elements.statusGee.textContent = config.earth_engine.mode;
-        if (elements.statusModel) elements.statusModel.textContent = config.segmentation_model.engine;
+        if (elements.statusGee && config.earth_engine) elements.statusGee.textContent = config.earth_engine.mode;
+        if (elements.statusModel && config.segmentation_model) elements.statusModel.textContent = config.segmentation_model.engine;
         if (config.mapbox_token && !state.mapboxToken) {
           state.mapboxToken = config.mapbox_token;
         }
+        updateActiveRasterLayer();
+        loadAlerts();
       }
     } catch (e) {
       console.warn("Backend config fetch skipped:", e);
