@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ecopulse-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Google Earth Engine API Key & credentials
+      GEE_API_KEY: ${GEE_API_KEY:-}
+      GEE_SERVICE_ACCOUNT: ${GEE_SERVICE_ACCOUNT:-}
+      GEE_CREDENTIALS_PATH: /run/secrets/gee_credentials.json
+      GEE_PROJECT: ${GEE_PROJECT:-}
+      # Mapbox token (optional - Leaflet open satellite renderer works without it)
+      MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
+      # Path to trained U-Net weights
+      MODEL_WEIGHTS_PATH: /app/backend/weights/unet_burn.h5
+      CORS_ORIGINS: "*"
+    volumes:
+      - ./backend/weights:/app/backend/weights:ro
+      - ./secrets/gee_credentials.json:/run/secrets/gee_credentials.json:ro
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: ecopulse-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
