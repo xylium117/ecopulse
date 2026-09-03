@@ -1,24 +1,3 @@
-"""
-EcoPulse — FastAPI Backend API
-===============================
-Planetary climate analytics engine aggregating multi-spectral satellite imagery
-from Sentinel-2 and Landsat missions to monitor global deforestation, carbon
-emissions/flux anomalies, and agricultural drought risk with deep learning segmentation.
-
-Endpoints
----------
-GET  /health                         Liveness & readiness health check
-GET  /api/config                     Runtime telemetry & provider configuration status
-GET  /api/metrics                    System & planetary benchmark metrics
-GET  /api/ndvi                       Multi-spectral NDVI/NDWI/Carbon-flux time series & anomalies
-GET  /api/drought                    Agricultural drought risk & Vegetation Condition Index (VCI)
-GET  /api/alerts                     Global real-time deforestation, carbon spike & wildfire alerts
-POST /api/inference/wildfire         Spatio-temporal U-Net burn-scar & canopy loss segmentation
-GET  /api/tiles/{layer}/{z}/{x}/{y}.png On-the-fly multi-layer XYZ raster tile stream
-GET  /api/tiles/{z}/{x}/{y}.png      Default heatmap XYZ raster tile stream
-GET  /api/export                     Planetary analytics telemetry report export
-"""
-
 from __future__ import annotations
 
 import io
@@ -38,7 +17,6 @@ from fastapi.responses import JSONResponse, Response
 from PIL import Image
 from pydantic import BaseModel, Field
 
-# Load environment variables from .env file if available
 load_dotenv()
 
 from backend import gee_utils
@@ -59,7 +37,6 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS configuration
 origins = os.environ.get("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
@@ -69,13 +46,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize single instance of deep learning segmentation engine
 segmenter = WildfireSegmenter()
 
-
-# --------------------------------------------------------------------------- #
-# Pydantic Schemas
-# --------------------------------------------------------------------------- #
 
 class NDVIPoint(BaseModel):
     date: str
@@ -123,13 +95,8 @@ class WildfireInferenceResponse(BaseModel):
     geojson: Optional[Dict[str, Any]] = None
 
 
-# --------------------------------------------------------------------------- #
-# System & Config Endpoints
-# --------------------------------------------------------------------------- #
-
 @app.get("/health")
 def health() -> Dict[str, Any]:
-    """Health check liveness & readiness probe."""
     return {
         "status": "healthy",
         "service": "ecopulse-api",
@@ -140,7 +107,6 @@ def health() -> Dict[str, Any]:
 
 @app.get("/api/config")
 def get_config() -> Dict[str, Any]:
-    """Returns runtime telemetry providers and configured API statuses."""
     ee_status = gee_utils.get_ee_status()
     model_status = segmenter.get_status()
     has_mapbox = bool(os.environ.get("MAPBOX_TOKEN") and "example" not in os.environ.get("MAPBOX_TOKEN", ""))
@@ -161,12 +127,7 @@ def get_metrics(
     lon_max: Optional[float] = Query(default=None),
     lat_max: Optional[float] = Query(default=None),
 ) -> Dict[str, Any]:
-    """
-    Returns real-time dynamic planetary telemetry metrics, live stream latency,
-    active anomaly counters, and regional carbon flux rates.
-    """
     now = time.time()
-    # Add realistic live sub-second latency measurement jitter
     stream_latency = 28 + int((now * 10) % 11)
 
     if lon_min is not None and lat_min is not None and lon_max is not None and lat_max is not None:
@@ -193,10 +154,6 @@ def get_metrics(
     }
 
 
-# --------------------------------------------------------------------------- #
-# Multi-Spectral NDVI & Climate Analytics
-# --------------------------------------------------------------------------- #
-
 @app.get("/api/ndvi", response_model=NDVIResponse)
 def get_ndvi(
     lon_min: float = Query(..., description="West bounding longitude"),
@@ -206,10 +163,6 @@ def get_ndvi(
     start_date: date = Query(..., description="Start of observation range (YYYY-MM-DD)"),
     end_date: date = Query(..., description="End of observation range (YYYY-MM-DD)"),
 ):
-    """
-    Computes multi-spectral NDVI vegetation tracking, NDWI water stress,
-    and carbon flux anomaly alerts over the requested bounding box.
-    """
     if lon_min >= lon_max or lat_min >= lat_max:
         raise HTTPException(status_code=400, detail="Invalid bounding box: min coordinates must be < max")
     if start_date >= end_date:
@@ -255,9 +208,6 @@ def get_drought(
     lon_max: float = Query(..., description="East bounding longitude"),
     lat_max: float = Query(..., description="North bounding latitude"),
 ):
-    """
-    Computes Agricultural Drought Vulnerability and Vegetation Condition Index (VCI).
-    """
     if lon_min >= lon_max or lat_min >= lat_max:
         raise HTTPException(status_code=400, detail="Invalid bounding box coordinates")
 
@@ -272,17 +222,12 @@ def get_alerts(
     lon_max: Optional[float] = Query(default=None, description="Optional east longitude for viewport filtering"),
     lat_max: Optional[float] = Query(default=None, description="Optional north latitude for viewport filtering"),
 ) -> List[Dict[str, Any]]:
-    """Returns the real-time live planetary deforestation, carbon spike, and wildfire alert feed."""
     bbox = None
     if lon_min is not None and lat_min is not None and lon_max is not None and lat_max is not None:
         if lon_min < lon_max and lat_min < lat_max:
             bbox = [lon_min, lat_min, lon_max, lat_max]
     return gee_utils.get_planetary_alerts(bbox=bbox)
 
-
-# --------------------------------------------------------------------------- #
-# Spatio-Temporal Deep Learning Wildfire Segmentation
-# --------------------------------------------------------------------------- #
 
 @app.post("/api/inference/wildfire", response_model=WildfireInferenceResponse)
 async def infer_wildfire(
@@ -295,11 +240,6 @@ async def infer_wildfire(
     file_pre: Optional[UploadFile] = File(default=None, description="Pre-event satellite raster"),
     file_post: Optional[UploadFile] = File(default=None, description="Post-event satellite raster"),
 ):
-    """
-    Runs the spatio-temporal U-Net deep learning segmentation model over
-    pre/post multi-spectral satellite observation stacks across ANY geographic
-    bounding box or incident preset on the globe.
-    """
     start = time.perf_counter()
     pre_arr = None
     post_arr = None
@@ -349,22 +289,11 @@ async def infer_wildfire(
     )
 
 
-# --------------------------------------------------------------------------- #
-# Dynamic Raster Tile Streaming
-# --------------------------------------------------------------------------- #
-
 _TILE_CACHE: Dict[str, bytes] = {}
 
 
 @app.get("/api/tiles/{layer}/{z}/{x}/{y}.png")
 def get_layer_tile(layer: str, z: int, x: int, y: int):
-    """
-    Serves XYZ multi-spectral raster tiles for specific telemetry overlays:
-    - ndvi / heatmap
-    - carbon / carbon_flux
-    - drought / drought_risk
-    - burn / burn_scars
-    """
     cache_key = f"{layer}/{z}/{x}/{y}"
     cached = _TILE_CACHE.get(cache_key)
     if cached is not None:
@@ -383,13 +312,8 @@ def get_layer_tile(layer: str, z: int, x: int, y: int):
 
 @app.get("/api/tiles/{z}/{x}/{y}.png")
 def get_default_tile(z: int, x: int, y: int):
-    """Default fallback tile endpoint."""
     return get_layer_tile(layer="heatmap", z=z, x=x, y=y)
 
-
-# --------------------------------------------------------------------------- #
-# Export Report
-# --------------------------------------------------------------------------- #
 
 @app.get("/api/export")
 def export_telemetry(
@@ -399,7 +323,6 @@ def export_telemetry(
     lon_max: float = Query(default=-61.8),
     lat_max: float = Query(default=-3.8),
 ):
-    """Exports a structured JSON summary report for the selected region."""
     bbox = [lon_min, lat_min, lon_max, lat_max]
     series, source = gee_utils.mock_ndvi_timeseries(bbox, "2025-01-01", "2026-01-01")
     flagged = gee_utils.flag_anomalies(series)

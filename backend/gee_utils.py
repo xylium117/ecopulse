@@ -17,7 +17,6 @@ _ee_initialized = False
 
 
 def _try_init_ee() -> bool:
-    """Attempt to initialize the Earth Engine client. Returns True on success."""
     global _ee_initialized
     if _ee_initialized:
         return True
@@ -38,13 +37,11 @@ def _try_init_ee() -> bool:
             credentials = ee.ServiceAccountCredentials(service_account, credentials_path)
             ee.Initialize(credentials, project=project)
         elif api_key:
-            # Initialize with Google Cloud API Key / Project
             try:
                 ee.Initialize(project=project, opt_url="https://earthengine.googleapis.com")
             except Exception:
                 ee.Initialize(project=project)
         else:
-            # Falls back to locally cached `earthengine authenticate` credentials
             ee.Initialize(project=project)
 
         _ee_initialized = True
@@ -56,7 +53,6 @@ def _try_init_ee() -> bool:
 
 
 def get_ee_status() -> Dict[str, Any]:
-    """Returns the current GEE connection state and authentication mode."""
     is_live = _try_init_ee()
     has_api_key = bool(os.environ.get("GEE_API_KEY"))
     has_sa = bool(os.environ.get("GEE_SERVICE_ACCOUNT"))
@@ -75,17 +71,9 @@ def get_ee_status() -> Dict[str, Any]:
     }
 
 
-# --------------------------------------------------------------------------- #
-# Multi-Spectral Time Series & Carbon Flux
-# --------------------------------------------------------------------------- #
-
 def get_ndvi_timeseries(
     bbox: List[float], start_date: str, end_date: str
 ) -> Tuple[List[Dict[str, Any]], str]:
-    """
-    Fetch multi-spectral NDVI, NDWI, and carbon flux time series from GEE.
-    Prefers Sentinel-2 SR Harmonized (10m) with Landsat fallback.
-    """
     if not _try_init_ee():
         return mock_ndvi_timeseries(bbox, start_date, end_date)
 
@@ -101,9 +89,7 @@ def get_ndvi_timeseries(
             return image.updateMask(mask)
 
         def add_spectral_indices(image):
-            # NDVI: (NIR - Red) / (NIR + Red) -> (B8 - B4) / (B8 + B4)
             ndvi = image.normalizedDifference(["B8", "B4"]).rename("NDVI")
-            # NDWI: (NIR - SWIR) / (NIR + SWIR) -> (B8 - B11) / (B8 + B11)
             ndwi = image.normalizedDifference(["B8", "B11"]).rename("NDWI")
             return image.addBands([ndvi, ndwi])
 
@@ -157,10 +143,6 @@ def get_ndvi_timeseries(
 def mock_ndvi_timeseries(
     bbox: List[float], start_date: str, end_date: str
 ) -> Tuple[List[Dict[str, Any]], str]:
-    """
-    High-fidelity synthetic multi-spectral telemetry engine seeded by geographical coordinates.
-    Generates realistic seasonal cycles, moisture index curves, and anomalous carbon flux events.
-    """
     try:
         start = datetime.fromisoformat(start_date)
         end = datetime.fromisoformat(end_date)
@@ -176,7 +158,6 @@ def mock_ndvi_timeseries(
     seed = int(abs(center_lon * 1000 + center_lat * 2000)) % (2**32)
     rng = random.Random(seed)
 
-    # Determine biome baseline from latitude/longitude
     is_tropical = abs(center_lat) < 15
     is_boreal = center_lat > 50
     base_greenness = 0.78 if is_tropical else (0.55 if is_boreal else 0.62)
@@ -190,7 +171,6 @@ def mock_ndvi_timeseries(
 
         ndvi = max(0.05, min(0.96, base_greenness + seasonal + noise))
         ndwi = max(-0.2, min(0.85, (ndvi * 0.75) - 0.05 + rng.uniform(-0.03, 0.03)))
-        # Carbon flux anomaly proxy in metric tons / ha / yr equivalents
         carbon_flux = max(0.2, (1.0 - ndvi) * 5.4 + rng.uniform(-0.2, 0.2))
 
         series.append({
@@ -200,7 +180,6 @@ def mock_ndvi_timeseries(
             "carbon_flux": round(carbon_flux, 2),
         })
 
-    # Inject localized deforestation / drought anomaly drops
     anomaly_indices = sorted(rng.sample(range(len(series) // 3, len(series)), min(2, len(series) // 4)))
     for idx in anomaly_indices:
         series[idx]["ndvi"] = round(max(0.12, series[idx]["ndvi"] - rng.uniform(0.25, 0.40)), 4)
@@ -211,9 +190,6 @@ def mock_ndvi_timeseries(
 
 
 def flag_anomalies(series: List[Dict[str, Any]], z_threshold: float = 2.0) -> List[Dict[str, Any]]:
-    """
-    Calculates z-score deviations from the rolling baseline and flags carbon flux & canopy anomalies.
-    """
     if not series:
         return []
 
@@ -222,7 +198,7 @@ def flag_anomalies(series: List[Dict[str, Any]], z_threshold: float = 2.0) -> Li
 
     flagged = []
     for p, v in zip(series, ndvis):
-        z = (mean - v) / std  # Drop below mean increases anomaly score
+        z = (mean - v) / std
         is_anomaly = bool(z > z_threshold)
         flagged.append({
             **p,
@@ -233,21 +209,12 @@ def flag_anomalies(series: List[Dict[str, Any]], z_threshold: float = 2.0) -> Li
     return flagged
 
 
-# --------------------------------------------------------------------------- #
-# Agricultural Drought Assessment
-# --------------------------------------------------------------------------- #
-
 def get_drought_risk(bbox: List[float]) -> Dict[str, Any]:
-    """
-    Computes the Agricultural Drought Risk Index (VCI / Soil Moisture Deficit)
-    for the provided bounding box.
-    """
     center_lon = (bbox[0] + bbox[2]) / 2
     center_lat = (bbox[1] + bbox[3]) / 2
     seed = int(abs(center_lon * 777 + center_lat * 1337)) % (2**32)
     rng = random.Random(seed)
 
-    # VCI ranges from 0% (Extreme Drought) to 100% (Optimal Condition)
     vci = rng.uniform(18.0, 85.0)
     soil_moisture_kpa = rng.uniform(12.0, 78.0)
     temp_anomaly_c = rng.uniform(-0.5, 3.8)
@@ -280,21 +247,11 @@ def get_drought_risk(bbox: List[float]) -> Dict[str, Any]:
     }
 
 
-# --------------------------------------------------------------------------- #
-# Global Planetary Alerts Feed
-# --------------------------------------------------------------------------- #
-
 def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, Any]]:
-    """
-    Returns real-time live planetary carbon flux, deforestation, and wildfire alerts.
-    Generates dynamically timestamped live anomaly events based on real-time UTC clock
-    and active satellite orbital telemetry passes.
-    """
     now = datetime.now(timezone.utc)
     epoch_sec = int(now.timestamp())
     rng = np.random.default_rng(seed=(epoch_sec // 60))
 
-    # Base planetary monitoring incident clusters with live real-time telemetry drift
     base_clusters = [
         {
             "id_prefix": "ALT-AMZ",
@@ -377,7 +334,6 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
     ]
 
     alerts = []
-    # Generate live sub-hour and real-time detection timestamps
     time_offsets_minutes = [2, 7, 18, 34, 52, 85]
 
     for idx, item in enumerate(base_clusters):
@@ -406,7 +362,6 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "live_active": True,
         })
 
-    # If bbox is provided, prioritize / append viewport-specific live anomaly if detected
     if bbox and len(bbox) == 4:
         c_lon = (bbox[0] + bbox[2]) / 2.0
         c_lat = (bbox[1] + bbox[3]) / 2.0
@@ -432,48 +387,29 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
     return alerts
 
 
-# --------------------------------------------------------------------------- #
-# Dynamic Multi-Spectral Raster Tile Generator
-# --------------------------------------------------------------------------- #
-
 TILE_SIZE = 256
 
+
 def is_land_region(lat: float, lon: float) -> bool:
-    """
-    Fast, robust land-sea classification algorithm.
-    Returns True if (lat, lon) is over a major landmass or island; False for open oceans.
-    """
     if lat > 84.0 or lat < -60.0:
         return False
 
-    # Continental land bounding approximations
     land_boxes = [
-        # North America & Central America
         (7.0, 72.0, -168.0, -52.0),
-        # South America
         (-56.0, 13.0, -82.0, -34.0),
-        # Europe
         (35.0, 71.0, -10.0, 40.0),
-        # Africa
         (-35.0, 38.0, -18.0, 52.0),
-        # Asia & Middle East
         (5.0, 78.0, 26.0, 180.0),
-        # Southeast Asia & Indonesia
         (-11.0, 8.0, 95.0, 142.0),
-        # Australia & New Zealand
         (-48.0, -10.0, 112.0, 179.0),
-        # Japan & East Asian Islands
         (24.0, 46.0, 122.0, 146.0),
-        # Madagascar
         (-26.0, -11.0, 43.0, 51.0),
-        # UK & Ireland
         (49.0, 61.0, -11.0, 2.0),
     ]
 
     for min_lat, max_lat, min_lon, max_lon in land_boxes:
         if min_lat <= lat <= max_lat:
             if min_lon <= lon <= max_lon:
-                # Specific deep ocean cutouts
                 if -5.0 <= lat <= 3.0 and -10.0 <= lon <= 5.0:
                     continue
                 if -20.0 <= lat <= 20.0 and (-160.0 <= lon <= -120.0 or 160.0 <= lon <= 180.0):
@@ -483,21 +419,11 @@ def is_land_region(lat: float, lon: float) -> bool:
 
 
 def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes:
-    """
-    Renders on-the-fly 256x256 PNG raster tiles for specific telemetry layers:
-    - `heatmap` / `ndvi`: Green healthy canopy to yellow/red stressed zones on land.
-    - `carbon`: Solar amber / golden ember carbon emission flux hotspots.
-    - `drought`: Dry arid amber to cyan moisture zones.
-    - `burn`: High-contrast wildfire burn-scar mask contours.
-
-    Applies land-ocean masking so oceans remain natural transparent/deep marine blue.
-    """
     mid_lat = (bounds.south + bounds.north) / 2.0
     mid_lon = (bounds.west + bounds.east) / 2.0
 
     rgba = np.zeros((TILE_SIZE, TILE_SIZE, 4), dtype=np.uint8)
 
-    # If the tile is over open ocean, keep it completely transparent so the natural satellite water shows
     if not is_land_region(mid_lat, mid_lon):
         img = Image.fromarray(rgba, mode="RGBA")
         buf = BytesIO()
@@ -513,22 +439,19 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
 
     base = 0.5 + 0.5 * np.sin(xx / freq + seed % 7) * np.cos(yy / freq + seed % 5)
 
-    # Seeded hotspot
     cx, cy = rng.integers(30, TILE_SIZE - 30, size=2)
     r = rng.integers(25, 75)
     dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
     hotspot = np.clip(1 - dist / r, 0, 1) ** 2
 
     if layer_type in ("carbon", "carbon_flux"):
-        # Solar amber / golden ember glow for carbon flux
         intensity = np.clip(base * 0.35 + hotspot * 1.1, 0, 1)
-        rgba[..., 0] = (intensity * 251).astype(np.uint8)              # Solar Amber (251, 191, 36)
+        rgba[..., 0] = (intensity * 251).astype(np.uint8)
         rgba[..., 1] = (intensity * 185 * (1 - hotspot * 0.3)).astype(np.uint8)
         rgba[..., 2] = (intensity * 36).astype(np.uint8)
         rgba[..., 3] = (intensity * 200).astype(np.uint8)
 
     elif layer_type in ("drought", "drought_risk"):
-        # Ochre / Terracotta for drought vs Cyan for moisture
         drought_val = np.clip(base * 0.6 + hotspot * 0.7, 0, 1)
         rgba[..., 0] = (220 * drought_val).clip(0, 255).astype(np.uint8)
         rgba[..., 1] = (140 * (1 - drought_val * 0.6)).clip(0, 255).astype(np.uint8)
@@ -536,7 +459,6 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
         rgba[..., 3] = (drought_val * 170).astype(np.uint8)
 
     elif layer_type in ("burn", "burn_scars"):
-        # Sharp crimson burn-scar perimeter
         burn_val = (hotspot > 0.35).astype(np.float32) * hotspot
         rgba[..., 0] = (burn_val * 245).astype(np.uint8)
         rgba[..., 1] = (burn_val * 50).astype(np.uint8)
@@ -544,7 +466,6 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
         rgba[..., 3] = (burn_val * 220).astype(np.uint8)
 
     else:
-        # Default NDVI heatmap on land: Green -> Yellow -> Crimson Hotspot
         field = np.clip(base * 0.5 + hotspot, 0, 1)
         rgba[..., 0] = (200 - field * 140 + hotspot * 90).clip(0, 255).astype(np.uint8)
         rgba[..., 1] = (90 + field * 140 - hotspot * 40).clip(0, 255).astype(np.uint8)

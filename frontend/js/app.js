@@ -1,19 +1,3 @@
-/**
- * EcoPulse — Planetary Climate Analytics Dashboard Application Logic
- * ===================================================================
- * Manages Dual Map Rendering:
- * 1. Open Satellite Engine (Leaflet + ESRI World Imagery) - Zero API keys required!
- * 2. Mapbox GL 3D Globe Engine (Optional - requires Mapbox token)
- *
- * Features:
- * - Dynamic multi-spectral raster layers (NDVI, Carbon Flux, Drought, Burn Scars)
- * - Deep Learning Spatio-Temporal U-Net (ConvLSTM2D) with Global Viewport Scanning
- * - Real-Time Live Telemetry Metrics Stream (updating with real-time sensor jitter & clock)
- * - Planetary alert stream with direct coordinate flight navigation
- * - Interactive multi-index canvas telemetry charts (NDVI / NDWI / CO₂ Flux)
- * - Agricultural drought risk assessments (VCI / Soil moisture)
- */
-
 (function () {
   "use strict";
 
@@ -24,13 +8,13 @@
   const state = {
     apiBase: window.ECOPULSE_API_BASE || localStorage.getItem("ecopulse_api_base") || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:8000" : ""),
     mapboxToken: rawToken,
-    currentEngine: safeEngine, // 'leaflet' | 'mapbox'
-    activeLayer: "ndvi", // ndvi | carbon | drought | burn
-    activeMetric: "ndvi", // ndvi | ndwi | carbon_flux
+    currentEngine: safeEngine,
+    activeLayer: "ndvi",
+    activeMetric: "ndvi",
     currentRegion: {
       id: "amazon",
       name: "Amazon Basin, Brazil",
-      center: [-62.5, -4.5], // [lon, lat]
+      center: [-62.5, -4.5],
       zoom: 5.5,
       sensor: "Sentinel-2 MSI (10m)",
     },
@@ -46,11 +30,7 @@
     telemetryPollTimer: null,
   };
 
-  // -------------------------------------------------------------------------
-  // 2. DOM Elements
-  // -------------------------------------------------------------------------
   const elements = {
-    // Metrics
     metricCarbon: document.getElementById("metric-carbon"),
     metricCarbonSub: document.getElementById("metric-carbon-sub"),
     metricTileSpeed: document.getElementById("metric-tile-speed"),
@@ -59,11 +39,9 @@
     metricAnomaliesSub: document.getElementById("metric-anomalies-sub"),
     metricClock: document.getElementById("metric-clock"),
 
-    // Region Select
     regionSelect: document.getElementById("region-select"),
     quickRegions: document.querySelectorAll(".quick-region-btn"),
 
-    // Chart
     chartCanvas: document.getElementById("ndvi-chart-canvas"),
     chartWrap: document.getElementById("ndvi-chart-wrap"),
     chartStart: document.getElementById("chart-start"),
@@ -71,7 +49,6 @@
     chartStatus: document.getElementById("chart-status"),
     chartTabs: document.querySelectorAll(".chart-tab"),
 
-    // Drought Risk & VCI Slider
     droughtScore: document.getElementById("drought-score"),
     droughtClass: document.getElementById("drought-class"),
     droughtAction: document.getElementById("drought-action"),
@@ -79,10 +56,8 @@
     vciSlider: document.getElementById("vci-slider"),
     vciSliderVal: document.getElementById("vci-slider-val"),
 
-    // Alerts
     alertList: document.getElementById("alert-feed-list"),
 
-    // AI Studio
     presetSelect: document.getElementById("studio-preset"),
     btnRunInference: document.getElementById("btn-run-inference"),
     fileUploadPre: document.getElementById("file-upload-pre"),
@@ -95,27 +70,22 @@
     statCo2: document.getElementById("stat-co2"),
     statLatency: document.getElementById("stat-latency"),
 
-    // AI Explainer Modal
     btnExplainAi: document.getElementById("btn-explain-ai"),
     modalAiExplainer: document.getElementById("modal-ai-explainer"),
     btnCloseExplainerModal: document.getElementById("btn-close-explainer-modal"),
     btnCloseExplainerDone: document.getElementById("btn-close-explainer-done"),
 
-    // HUD
     hudRegion: document.getElementById("hud-region"),
     hudCoords: document.getElementById("hud-coords"),
     hudSensor: document.getElementById("hud-sensor"),
 
-    // Layer Switcher
     layerBtns: document.querySelectorAll(".layer-btn"),
 
-    // Map Containers & Switcher
     leafletContainer: document.getElementById("leaflet-map"),
     mapboxContainer: document.getElementById("map"),
     btnEngineLeaflet: document.getElementById("engine-leaflet-btn"),
     btnEngineMapbox: document.getElementById("engine-mapbox-btn"),
 
-    // Settings Modal
     btnSettings: document.getElementById("btn-settings"),
     modalSettings: document.getElementById("modal-settings"),
     btnCloseModal: document.getElementById("btn-close-modal"),
@@ -125,14 +95,10 @@
     statusGee: document.getElementById("status-gee"),
     statusModel: document.getElementById("status-model"),
 
-    // Export & Toast
     btnExport: document.getElementById("btn-export"),
     toast: document.getElementById("toast"),
   };
 
-  // -------------------------------------------------------------------------
-  // 3. Open Satellite Engine (Leaflet + ESRI World Imagery)
-  // -------------------------------------------------------------------------
   function initLeafletMap() {
     if (typeof L === "undefined") {
       console.warn("Leaflet library not found.");
@@ -159,8 +125,7 @@
       attributionControl: true,
     });
 
-    // High-Resolution ESRI World Imagery Satellite Basemap
-    const esriTileLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
       minZoom: 3,
       maxZoom: 19,
       noWrap: true,
@@ -171,7 +136,6 @@
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, GeoEye",
     }).addTo(state.leafletInstance);
 
-    // CartoDB Dark Matter Labels Overlay
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", {
       subdomains: "abcd",
       minZoom: 3,
@@ -180,7 +144,6 @@
       opacity: 0.85,
     }).addTo(state.leafletInstance);
 
-    // EcoPulse Multi-Spectral Telemetry Overlay Layer
     updateLeafletTelemetryLayer();
 
     state.leafletInstance.on("move", () => {
@@ -190,7 +153,6 @@
       }
     });
 
-    // Update real-time metrics on pan/zoom end
     state.leafletInstance.on("moveend", () => {
       fetchRealTimeMetrics();
     });
@@ -258,9 +220,6 @@
     });
   }
 
-  // -------------------------------------------------------------------------
-  // 4. Mapbox GL 3D Globe Engine (Optional)
-  // -------------------------------------------------------------------------
   function initMapboxMap() {
     if (typeof mapboxgl === "undefined") return;
 
@@ -400,9 +359,6 @@
     });
   }
 
-  // -------------------------------------------------------------------------
-  // 5. Dual Engine Switcher
-  // -------------------------------------------------------------------------
   function switchMapEngine(engineKey) {
     state.currentEngine = engineKey;
     localStorage.setItem("ecopulse_map_engine", engineKey);
@@ -445,9 +401,6 @@
     }
   }
 
-  // -------------------------------------------------------------------------
-  // 6. Real-Time Telemetry & Config Metrics Pipeline
-  // -------------------------------------------------------------------------
   async function loadConfig() {
     try {
       const res = await fetch(`${state.apiBase}/api/config`);
@@ -515,7 +468,6 @@
         }
       }
     } catch (e) {
-      // Client-side dynamic fallback clock & latency
       const now = new Date();
       const fakeLatency = 26 + Math.floor(Math.random() * 12);
       if (elements.metricTileSpeed) elements.metricTileSpeed.textContent = `${fakeLatency}ms`;
@@ -526,16 +478,10 @@
   function startRealTimeTelemetryLoop() {
     fetchRealTimeMetrics();
     if (state.telemetryPollTimer) clearInterval(state.telemetryPollTimer);
-    // Real-time telemetry updates every 2.5 seconds
     state.telemetryPollTimer = setInterval(fetchRealTimeMetrics, 2500);
-
-    // Periodic live alert feed refresh every 12 seconds
     setInterval(loadAlerts, 12000);
   }
 
-  // -------------------------------------------------------------------------
-  // 7. Multi-Spectral NDVI / NDWI / Carbon Flux Telemetry
-  // -------------------------------------------------------------------------
   async function loadNdviTelemetry(centerLon, centerLat) {
     const delta = 0.85;
     const params = new URLSearchParams({
@@ -586,9 +532,6 @@
     return series;
   }
 
-  // -------------------------------------------------------------------------
-  // 8. Interactive Canvas Multi-Index Chart
-  // -------------------------------------------------------------------------
   function drawChart(metricKey) {
     const canvas = elements.chartCanvas;
     if (!canvas || !state.timeseriesData.length) return;
@@ -672,9 +615,6 @@
     });
   }
 
-  // -------------------------------------------------------------------------
-  // 9. Agricultural Drought Risk Assessment & Interactive VCI Sensitivity
-  // -------------------------------------------------------------------------
   function updateVciDisplay() {
     const vci = Number(state.currentVci) || 68.4;
     const thresh = Number(state.vciThreshold) || 35;
@@ -736,9 +676,6 @@
     }
   }
 
-  // -------------------------------------------------------------------------
-  // 10. Real-Time Planetary Alerts Feed & Map Markers
-  // -------------------------------------------------------------------------
   async function loadAlerts() {
     try {
       const bounds = getCurrentViewportBounds();
@@ -805,9 +742,6 @@
     }
   }
 
-  // -------------------------------------------------------------------------
-  // 11. Global Spatio-Temporal AI Segmentation Scanner + Map Visualizer
-  // -------------------------------------------------------------------------
   const STANDARD_SCAN_ZOOM = 5.6;
 
   const PRESET_LOCATIONS = {
@@ -873,7 +807,6 @@
 
       url = `${state.apiBase}/api/inference/wildfire?preset=global_scan&lon_min=${lon_min}&lat_min=${lat_min}&lon_max=${lon_max}&lat_max=${lat_max}&region_name=${encodeURIComponent(cleanRegionLabel)}`;
     } else if (PRESET_LOCATIONS[preset]) {
-      // Fly camera to the designated incident location
       const loc = PRESET_LOCATIONS[preset];
       if (state.currentEngine === "leaflet" && state.leafletInstance) {
         state.leafletInstance.flyTo([loc.center[1], loc.center[0]], loc.zoom, { duration: 1.2 });
@@ -891,7 +824,6 @@
       if (!res.ok) throw new Error(`Inference returned HTTP ${res.status}`);
       const result = await res.json();
 
-      // Update sidebar thumbnails & analytics
       if (elements.thumbPre) elements.thumbPre.src = `data:image/png;base64,${result.visuals.pre_scene_b64}`;
       if (elements.thumbPost) elements.thumbPost.src = `data:image/png;base64,${result.visuals.post_scene_b64}`;
       if (elements.thumbOverlay) elements.thumbOverlay.src = `data:image/png;base64,${result.visuals.overlay_b64}`;
@@ -902,7 +834,6 @@
 
       if (elements.studioStatus) elements.studioStatus.textContent = `Completed · ${result.title}`;
 
-      // Plot affected area visually on the live map
       plotSegmentationOnMap(result);
 
       showToast(`Segmentation complete: ${result.burned_area_hectares.toLocaleString()} ha mapped.`);
@@ -914,11 +845,9 @@
     }
   }
 
-  // Visually plots the affected burn-scar / deforestation polygon directly on the map
   function plotSegmentationOnMap(result) {
     if (!result.geojson || !result.bbox) return;
 
-    const bbox = result.bbox; // [min_lon, min_lat, max_lon, max_lat]
     const popupContent = `
       <div style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#fff; min-width:220px;">
         <div style="font-weight:700; color:#F87171; margin-bottom:4px; font-size:12.5px;">${result.title}</div>
@@ -929,7 +858,6 @@
       </div>
     `;
 
-    // 1. Plot on Open Satellite Engine (Leaflet)
     if (state.leafletInstance) {
       if (state.leafletAiLayer) {
         state.leafletInstance.removeLayer(state.leafletAiLayer);
@@ -951,7 +879,6 @@
       state.leafletAiLayer.openPopup();
     }
 
-    // 2. Plot on Mapbox 3D Globe Engine
     if (state.mapboxInstance && state.mapboxInstance.isStyleLoaded()) {
       const sourceId = "ecopulse-ai-segmentation-src";
       const fillLayerId = "ecopulse-ai-segmentation-fill";
@@ -993,9 +920,6 @@
     }
   }
 
-  // -------------------------------------------------------------------------
-  // 12. Region Navigation
-  // -------------------------------------------------------------------------
   function setRegion(regionKey) {
     const presets = {
       amazon: { name: "Amazon Basin, Brazil", center: [-62.5, -4.5], zoom: 5.5, sensor: "Sentinel-2 MSI" },
@@ -1029,9 +953,6 @@
     fetchRealTimeMetrics();
   }
 
-  // -------------------------------------------------------------------------
-  // 13. Toast & Export Utilities
-  // -------------------------------------------------------------------------
   function showToast(msg) {
     if (!elements.toast) return;
     elements.toast.textContent = msg;
@@ -1061,11 +982,7 @@
     showToast("Planetary telemetry report exported successfully.");
   }
 
-  // -------------------------------------------------------------------------
-  // 14. Event Listeners Setup
-  // -------------------------------------------------------------------------
   function attachEventListeners() {
-    // Engine switch buttons
     if (elements.btnEngineLeaflet) {
       elements.btnEngineLeaflet.addEventListener("click", () => switchMapEngine("leaflet"));
     }
@@ -1073,7 +990,6 @@
       elements.btnEngineMapbox.addEventListener("click", () => switchMapEngine("mapbox"));
     }
 
-    // Region change
     if (elements.regionSelect) {
       elements.regionSelect.addEventListener("change", (e) => setRegion(e.target.value));
     }
@@ -1082,7 +998,6 @@
       btn.addEventListener("click", () => setRegion(btn.dataset.region));
     });
 
-    // Layer switcher
     elements.layerBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         elements.layerBtns.forEach((b) => b.classList.remove("active"));
@@ -1093,7 +1008,6 @@
       });
     });
 
-    // Chart metric tabs
     elements.chartTabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         elements.chartTabs.forEach((t) => t.classList.remove("active"));
@@ -1103,7 +1017,6 @@
       });
     });
 
-    // Drought VCI Slider listener
     if (elements.vciSlider) {
       elements.vciSlider.addEventListener("input", (e) => {
         const val = Number(e.target.value);
@@ -1116,7 +1029,6 @@
       });
     }
 
-    // Run AI segmentation
     if (elements.btnRunInference) {
       elements.btnRunInference.addEventListener("click", runWildfireSegmentation);
     }
@@ -1128,7 +1040,6 @@
       });
     }
 
-    // KaTeX LaTeX Typesetting helper
     function renderLatexMath() {
       if (typeof renderMathInElement === "function" && elements.modalAiExplainer) {
         try {
@@ -1145,7 +1056,6 @@
       }
     }
 
-    // AI Explainer Modal
     if (elements.btnExplainAi) {
       elements.btnExplainAi.addEventListener("click", () => {
         if (elements.modalAiExplainer) {
@@ -1166,7 +1076,6 @@
       });
     }
 
-    // Modal Settings
     if (elements.btnSettings) {
       elements.btnSettings.addEventListener("click", () => {
         if (elements.inputMapboxToken) elements.inputMapboxToken.value = state.mapboxToken;
@@ -1207,9 +1116,6 @@
     });
   }
 
-  // -------------------------------------------------------------------------
-  // 15. Bootstrap Execution
-  // -------------------------------------------------------------------------
   document.addEventListener("DOMContentLoaded", () => {
     switchMapEngine(state.currentEngine);
     attachEventListeners();

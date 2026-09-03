@@ -1,25 +1,3 @@
-"""
-EcoPulse — Spatio-Temporal Wildfire & Deforestation Segmentation Model
-======================================================================
-Defines the deep learning spatio-temporal U-Net architecture with a
-ConvLSTM2D bottleneck for multi-spectral burn-scar and canopy loss segmentation.
-
-Architecture:
-- Input: Multi-temporal stack (T=2, H=256, W=256, C=3) representing pre-fire and
-  post-fire observation frames (or RGB/NIR multi-spectral bands).
-- TimeDistributed 2D Convolutional Encoder: Extracts multi-scale feature hierarchies
-  across individual time steps.
-- ConvLSTM2D Bottleneck: Captures temporal dynamics, delta changes, and surface state
-  transitions between observation periods.
-- Decoder: Transposed 2D Convolutions with skip connections from the post-event encoder.
-- Output: Pixel-wise binary segmentation probability map (256x256, 1).
-
-Inference Engine:
-`WildfireSegmenter` handles model loading, weight checkpoint management, synthetic
-pre/post scene generation for interactive demos, and burn severity analytics (burned
-hectares, severity breakdown, CO2 emissions estimate).
-"""
-
 from __future__ import annotations
 
 import base64
@@ -30,7 +8,7 @@ import os
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-from PIL import Image, ImageEnhance
+from PIL import Image
 
 logger = logging.getLogger("ecopulse.model")
 
@@ -48,10 +26,6 @@ def build_spatiotemporal_unet(
     bands: int = INPUT_BANDS,
     time_steps: int = TIME_STEPS,
 ):
-    """
-    Constructs the spatio-temporal U-Net neural network.
-    Lazy imports TensorFlow to enable lightweight imports when TF is not invoked.
-    """
     import tensorflow as tf
     from tensorflow.keras import layers, models
 
@@ -64,7 +38,6 @@ def build_spatiotemporal_unet(
 
     inputs = layers.Input(shape=(time_steps, input_size, input_size, bands), name="pre_post_temporal_stack")
 
-    # --- TimeDistributed Encoder ---
     td_conv1 = layers.TimeDistributed(layers.Lambda(lambda x: conv_block(x, 64)))(inputs)
     td_pool1 = layers.TimeDistributed(layers.MaxPooling2D(2))(td_conv1)
 
@@ -74,13 +47,11 @@ def build_spatiotemporal_unet(
     td_conv3 = layers.TimeDistributed(layers.Lambda(lambda x: conv_block(x, 256)))(td_pool2)
     td_pool3 = layers.TimeDistributed(layers.MaxPooling2D(2))(td_conv3)
 
-    # --- Spatio-Temporal ConvLSTM2D Bottleneck ---
     bottleneck = layers.ConvLSTM2D(
         512, 3, padding="same", activation="relu", return_sequences=False, name="temporal_bottleneck"
     )(td_pool3)
     bottleneck = layers.BatchNormalization()(bottleneck)
 
-    # --- Decoder with Skip Connections (from post-event observation frame) ---
     skip3 = layers.Lambda(lambda x: x[:, -1], name="skip_post_conv3")(td_conv3)
     skip2 = layers.Lambda(lambda x: x[:, -1], name="skip_post_conv2")(td_conv2)
     skip1 = layers.Lambda(lambda x: x[:, -1], name="skip_post_conv1")(td_conv1)
@@ -109,10 +80,6 @@ def build_spatiotemporal_unet(
 
 
 class WildfireSegmenter:
-    """
-    Inference orchestrator for multi-spectral burn-scar and deforestation segmentation.
-    """
-
     def __init__(self, weights_path: str = DEFAULT_WEIGHTS_PATH):
         self.weights_path = weights_path
         self._model = None
@@ -137,7 +104,6 @@ class WildfireSegmenter:
             logger.warning("TensorFlow engine unavailable (%s) — using high-performance algorithmic inference.", exc)
 
     def get_status(self) -> Dict[str, Any]:
-        """Returns the current model status and active execution backend."""
         return {
             "engine": "TensorFlow 2.x (Spatio-Temporal U-Net)" if self._tf_available else "Algorithmic Spectral Segmenter",
             "weights_loaded": self._weights_loaded,
@@ -149,10 +115,6 @@ class WildfireSegmenter:
     def generate_scene_for_bbox(
         self, bbox: List[float], region_name: Optional[str] = None
     ) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
-        """
-        Generates/extracts realistic multi-spectral pre-event and post-event satellite
-        cubes for ANY arbitrary bounding box across the globe.
-        """
         center_lon = (bbox[0] + bbox[2]) / 2.0
         center_lat = (bbox[1] + bbox[3]) / 2.0
         seed = int(abs(center_lon * 1337 + center_lat * 2777)) % (2**32)
@@ -160,32 +122,27 @@ class WildfireSegmenter:
 
         yy, xx = np.mgrid[0:INPUT_SIZE, 0:INPUT_SIZE]
 
-        # Determine biome character from latitude
         is_tropical = abs(center_lat) < 23.5
         is_boreal = center_lat > 50.0
         is_arid = 15.0 < abs(center_lat) < 35.0 and (-20.0 < center_lon < 60.0 or -120.0 < center_lon < -100.0)
 
         pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
         if is_tropical:
-            # Dense rainforest canopy
             pre[..., 0] = 0.12 + 0.04 * np.sin(xx / 25)
             pre[..., 1] = 0.50 + 0.08 * np.cos(yy / 25)
             pre[..., 2] = 0.18 + 0.03 * np.sin(yy / 35)
             scar_type = "Deforestation & Logging Clear-Cut"
         elif is_boreal:
-            # Larch / Conifer taiga
             pre[..., 0] = 0.16 + 0.05 * np.cos(xx / 30)
             pre[..., 1] = 0.40 + 0.06 * np.sin(yy / 30)
             pre[..., 2] = 0.22 + 0.04 * np.cos(yy / 40)
             scar_type = "Boreal Wildfire Burn Scar"
         elif is_arid:
-            # Chaparral / Shrubland / Steppe
             pre[..., 0] = 0.28 + 0.06 * np.sin(xx / 35)
             pre[..., 1] = 0.35 + 0.05 * np.cos(yy / 35)
             pre[..., 2] = 0.20 + 0.03 * np.sin(yy / 40)
             scar_type = "Drought & Brushfire Scar"
         else:
-            # Temperate Woodland / Forest
             pre[..., 0] = 0.18 + 0.05 * np.cos(xx / 30)
             pre[..., 1] = 0.45 + 0.07 * np.sin(yy / 30)
             pre[..., 2] = 0.20 + 0.03 * np.cos(yy / 40)
@@ -193,7 +150,6 @@ class WildfireSegmenter:
 
         post = pre.copy()
 
-        # Seeded geographic disturbance centers
         cx1, cy1 = rng.integers(60, INPUT_SIZE - 60, size=2)
         r1, r2 = rng.integers(30, 65, size=2)
         dist1 = ((xx - cx1)**2 / (r1**2) + (yy - cy1)**2 / (r2**2)) < 1.0
@@ -204,7 +160,6 @@ class WildfireSegmenter:
 
         disturbance_mask = dist1 | dist2
 
-        # Charred burn / bare earth spectral shift (high red reflectance, sharp drop in NIR/green)
         post[disturbance_mask, 0] = np.clip(post[disturbance_mask, 0] * 1.8 + 0.25 + rng.normal(0, 0.02, size=post[disturbance_mask, 0].shape), 0, 1)
         post[disturbance_mask, 1] = np.clip(post[disturbance_mask, 1] * 0.42 + rng.normal(0, 0.02, size=post[disturbance_mask, 1].shape), 0, 1)
         post[disturbance_mask, 2] = np.clip(post[disturbance_mask, 2] * 0.50, 0, 1)
@@ -212,29 +167,24 @@ class WildfireSegmenter:
         pre = np.clip(pre + rng.normal(0, 0.015, size=pre.shape), 0, 1).astype(np.float32)
         post = np.clip(post + rng.normal(0, 0.015, size=post.shape), 0, 1).astype(np.float32)
 
-        # Build dynamic GeoJSON polygon anchored to the actual bounding box
         lon_span = bbox[2] - bbox[0]
         lat_span = bbox[3] - bbox[1]
 
-        # Convert pixel centroid to real geographic coordinates
         geo_cx1 = bbox[0] + (cx1 / INPUT_SIZE) * lon_span
         geo_cy1 = bbox[1] + ((INPUT_SIZE - cy1) / INPUT_SIZE) * lat_span
         geo_rx = (r1 / INPUT_SIZE) * lon_span * 0.9
         geo_ry = (r2 / INPUT_SIZE) * lat_span * 0.9
 
-        # Generate smooth polygon contour
         poly_coords = []
         n_vertices = 14
         for step in range(n_vertices):
             angle = (step / n_vertices) * 2 * math.pi
-            # Add realistic perimeter noise
             jitter = rng.uniform(0.85, 1.15)
             px = geo_cx1 + math.cos(angle) * geo_rx * jitter
             py = geo_cy1 + math.sin(angle) * geo_ry * jitter
             poly_coords.append([round(px, 5), round(py, 5)])
-        poly_coords.append(poly_coords[0])  # close polygon loop
+        poly_coords.append(poly_coords[0])
 
-        # Clean region name from any repeated prefixes
         clean_name = (region_name or "").strip()
         while "AI SCANNED:" in clean_name.upper():
             clean_name = clean_name.replace("AI SCANNED:", "").replace("ai scanned:", "").strip()
@@ -266,7 +216,6 @@ class WildfireSegmenter:
         return pre, post, meta
 
     def generate_demo_pair(self, preset: str = "california") -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
-        """Generates realistic multi-spectral pre/post satellite scenes for curated demonstration incidents."""
         rng = np.random.default_rng(seed=hash(preset) % (2**32))
         preset = preset.lower()
 
@@ -275,13 +224,11 @@ class WildfireSegmenter:
         if preset == "amazon":
             title = "Amazon Deforestation Frontier (BR-163 Arc)"
             bbox = [-56.00, -7.20, -54.90, -6.50]
-            # Deep lush rainforest pre-event
             pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
             pre[..., 0] = 0.12 + 0.05 * np.sin(xx / 30)
             pre[..., 1] = 0.48 + 0.08 * np.cos(yy / 30)
             pre[..., 2] = 0.18 + 0.04 * np.sin(yy / 40)
 
-            # Post-event: clear-cut logging fishbone patterns
             post = pre.copy()
             fishbone = ((xx % 36 < 14) & (yy > 60) & (yy < 200)) | ((yy % 40 < 12) & (xx > 50) & (xx < 210))
             post[fishbone, 0] = 0.58 + rng.normal(0, 0.03, size=post[fishbone, 0].shape)
@@ -305,7 +252,6 @@ class WildfireSegmenter:
             geo = self._get_preset_geometry("borneo")
 
         else:
-            # California Sierra Nevada Wildfire Burn Scar (default)
             title = "Sierra Nevada Wildfire Burn Complex (California)"
             bbox = [-121.60, 39.50, -120.60, 40.40]
             pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
@@ -340,11 +286,6 @@ class WildfireSegmenter:
         bbox: Optional[List[float]] = None,
         region_name: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """
-        Executes full spatio-temporal segmentation inference for EITHER a curated
-        incident preset, custom uploaded images, or ANY arbitrary map bounding box
-        across the entire planet.
-        """
         if bbox is not None and len(bbox) == 4:
             pre_img, post_img, meta = self.generate_scene_for_bbox(bbox, region_name=region_name)
         elif pre_img is None or post_img is None:
@@ -357,35 +298,29 @@ class WildfireSegmenter:
                 "geojson": self._get_preset_geometry("california")["geojson"],
             }
 
-        pair = np.stack([pre_img, post_img], axis=0)  # (2, H, W, C)
+        pair = np.stack([pre_img, post_img], axis=0)
 
-        # Predict probability mask via deep learning or spectral delta ConvLSTM
         if self._tf_available and self._model is not None:
             batch = np.expand_dims(pair, axis=0)
             raw_prob = self._model.predict(batch, verbose=0)[0, ..., 0]
         else:
-            # Algorithmic Spectral Delta-NBR proxy
             spectral_diff = (pre_img[..., 1] - post_img[..., 1]) + (post_img[..., 0] - pre_img[..., 0])
             raw_prob = 1.0 / (1.0 + np.exp(-12.0 * (spectral_diff - 0.22)))
 
         binary_mask = (raw_prob > 0.45).astype(np.float32)
 
-        # Compute severity and area metrics
         total_pixels = INPUT_SIZE * INPUT_SIZE
         burned_pixels = int(np.sum(binary_mask))
         burned_ratio = burned_pixels / total_pixels
 
-        # Approximate 10m pixel ground area -> 1 pixel = 100m² = 0.01 hectare
         area_hectares = round(burned_pixels * 0.01 * 8.5, 1)
         co2_emissions_kt = round(area_hectares * 0.24, 2)
 
-        # Severity breakdown
         high_severity = int(np.sum(raw_prob > 0.75))
         mod_severity = int(np.sum((raw_prob > 0.50) & (raw_prob <= 0.75)))
         low_severity = int(np.sum((raw_prob > 0.35) & (raw_prob <= 0.50)))
         unburned = total_pixels - (high_severity + mod_severity + low_severity)
 
-        # Generate base64 visualization renders
         pre_b64 = self._array_to_b64(pre_img)
         post_b64 = self._array_to_b64(post_img)
         mask_b64 = self._mask_to_b64(binary_mask)
@@ -416,11 +351,9 @@ class WildfireSegmenter:
 
     @staticmethod
     def _get_preset_geometry(preset: str) -> Dict[str, Any]:
-        """Generates realistic GeoJSON polygonal perimeters for affected areas."""
         preset = preset.lower()
 
         if preset == "amazon":
-            # Pará BR-163 Deforestation Corridor
             bbox = [-55.70, -7.05, -55.20, -6.65]
             coords = [[
                 [-55.62, -6.72], [-55.55, -6.68], [-55.42, -6.71], [-55.30, -6.78],
@@ -429,7 +362,6 @@ class WildfireSegmenter:
             ]]
             region_name = "Amazon Deforestation Arc (Pará, Brazil)"
         elif preset == "borneo":
-            # Central Kalimantan Peatlands
             bbox = [113.55, -2.45, 114.10, -1.95]
             coords = [[
                 [113.65, -2.05], [113.78, -1.98], [113.95, -2.02], [114.05, -2.15],
@@ -438,7 +370,6 @@ class WildfireSegmenter:
             ]]
             region_name = "Central Kalimantan Peatlands (Borneo)"
         else:
-            # Sierra Nevada Dixie Wildfire Complex (California)
             bbox = [-121.50, 39.70, -120.80, 40.25]
             coords = [[
                 [-121.38, 40.18], [-121.20, 40.24], [-120.95, 40.15], [-120.84, 39.98],
@@ -481,11 +412,9 @@ class WildfireSegmenter:
 
     @staticmethod
     def _create_overlay_b64(base_img: np.ndarray, mask: np.ndarray, prob_map: np.ndarray) -> str:
-        """Creates a composite visualization overlaying crimson/amber burn-scar gradients onto the satellite scene."""
         base_uint = (np.clip(base_img, 0, 1) * 255).astype(np.uint8)
         overlay = base_uint.copy()
 
-        # Crimson for high probability burn scar
         flame_mask = prob_map > 0.40
         overlay[flame_mask, 0] = np.clip(overlay[flame_mask, 0] * 0.3 + 220, 0, 255).astype(np.uint8)
         overlay[flame_mask, 1] = np.clip(overlay[flame_mask, 1] * 0.3 + 50, 0, 255).astype(np.uint8)

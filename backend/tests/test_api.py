@@ -1,11 +1,3 @@
-"""
-EcoPulse Backend Test Suite
-============================
-Comprehensive test suite validating FastAPI endpoints, GEE multi-spectral telemetry,
-anomaly detection, drought index calculations, Spatio-Temporal U-Net inference,
-dynamic XYZ raster tile generation, and error handling.
-"""
-
 import io
 import pytest
 from PIL import Image
@@ -17,10 +9,6 @@ from backend.model import WildfireSegmenter
 
 client = TestClient(app)
 
-
-# --------------------------------------------------------------------------- #
-# 1. System Health, Diagnostics & Headline Metrics Tests
-# --------------------------------------------------------------------------- #
 
 def test_health_endpoint():
     response = client.get("/health")
@@ -64,10 +52,6 @@ def test_metrics_endpoint_with_viewport_bounds():
     assert float(data["carbon_flux_rate"]) is not None
 
 
-# --------------------------------------------------------------------------- #
-# 2. Multi-Spectral NDVI / NDWI & Carbon Flux Telemetry Tests
-# --------------------------------------------------------------------------- #
-
 def test_ndvi_endpoint_valid():
     params = {
         "lon_min": -63.2,
@@ -97,7 +81,7 @@ def test_ndvi_endpoint_invalid_bbox():
     params = {
         "lon_min": -60.0,
         "lat_min": -5.0,
-        "lon_max": -65.0,  # Invalid: min > max
+        "lon_max": -65.0,
         "lat_max": -3.0,
         "start_date": "2025-01-01",
         "end_date": "2026-01-01",
@@ -114,16 +98,12 @@ def test_ndvi_endpoint_inverted_dates():
         "lon_max": -60.0,
         "lat_max": -3.0,
         "start_date": "2026-01-01",
-        "end_date": "2025-01-01",  # Invalid: start > end
+        "end_date": "2025-01-01",
     }
     response = client.get("/api/ndvi", params=params)
     assert response.status_code == 400
     assert "start_date must be before end_date" in response.json()["detail"]
 
-
-# --------------------------------------------------------------------------- #
-# 3. Agricultural Drought Risk & VCI Assessment Tests
-# --------------------------------------------------------------------------- #
 
 def test_drought_endpoint_valid():
     params = {
@@ -147,16 +127,12 @@ def test_drought_endpoint_invalid_coords():
     params = {
         "lon_min": 10.0,
         "lat_min": 20.0,
-        "lon_max": 5.0,  # Invalid
+        "lon_max": 5.0,
         "lat_max": 25.0,
     }
     response = client.get("/api/drought", params=params)
     assert response.status_code == 400
 
-
-# --------------------------------------------------------------------------- #
-# 4. Real-Time Planetary Alert Stream Tests
-# --------------------------------------------------------------------------- #
 
 def test_alerts_endpoint_global():
     response = client.get("/api/alerts")
@@ -187,10 +163,6 @@ def test_alerts_endpoint_with_viewport():
     assert len(alerts) >= 6
     assert "Active AOI" in alerts[0]["title"] or "Live Viewport" in alerts[0]["region"]
 
-
-# --------------------------------------------------------------------------- #
-# 5. Spatio-Temporal Deep Learning Wildfire Segmentation Tests
-# --------------------------------------------------------------------------- #
 
 @pytest.mark.parametrize("preset_name", ["california", "amazon", "borneo"])
 def test_wildfire_inference_presets(preset_name):
@@ -223,10 +195,6 @@ def test_wildfire_inference_viewport_scan():
     assert data["burned_area_hectares"] > 0
 
 
-# --------------------------------------------------------------------------- #
-# 6. Multi-Layer Dynamic XYZ Raster Tile Server Tests
-# --------------------------------------------------------------------------- #
-
 @pytest.mark.parametrize("layer", ["ndvi", "carbon", "drought", "burn", "heatmap"])
 def test_tile_layers_valid(layer):
     response = client.get(f"/api/tiles/{layer}/4/4/7.png")
@@ -245,10 +213,6 @@ def test_default_tile_route():
     assert response.headers["content-type"] == "image/png"
 
 
-# --------------------------------------------------------------------------- #
-# 7. Telemetry Report Export Tests
-# --------------------------------------------------------------------------- #
-
 def test_export_endpoint():
     response = client.get("/api/export?region=Amazon%20Basin")
     assert response.status_code == 200
@@ -261,20 +225,14 @@ def test_export_endpoint():
     assert "timeseries_sample" in data
 
 
-# --------------------------------------------------------------------------- #
-# 8. Core Multi-Spectral Telemetry & Land-Ocean Masking Unit Tests
-# --------------------------------------------------------------------------- #
-
 def test_is_land_region_classification():
-    # True land locations
-    assert gee_utils.is_land_region(-3.4, -62.2) is True    # Amazon Basin
-    assert gee_utils.is_land_region(37.7, -119.5) is True   # California
-    assert gee_utils.is_land_region(48.8, 2.3) is True      # Paris, Europe
-    assert gee_utils.is_land_region(62.0, 129.7) is True    # Siberia
+    assert gee_utils.is_land_region(-3.4, -62.2) is True
+    assert gee_utils.is_land_region(37.7, -119.5) is True
+    assert gee_utils.is_land_region(48.8, 2.3) is True
+    assert gee_utils.is_land_region(62.0, 129.7) is True
 
-    # Deep open oceans
-    assert gee_utils.is_land_region(0.0, -140.0) is False   # Deep Pacific
-    assert gee_utils.is_land_region(0.0, -30.0) is False    # Deep Atlantic
+    assert gee_utils.is_land_region(0.0, -140.0) is False
+    assert gee_utils.is_land_region(0.0, -30.0) is False
 
 
 def test_flag_anomalies_zscore():
@@ -282,11 +240,9 @@ def test_flag_anomalies_zscore():
         {"date": f"2025-{i:02d}-01", "ndvi": 0.75 + (0.01 if i % 2 == 0 else -0.01), "ndwi": 0.40, "carbon_flux": -0.8}
         for i in range(1, 12)
     ]
-    # Inject clear outlier at the end
     sample_series.append({"date": "2025-12-01", "ndvi": 0.10, "ndwi": -0.30, "carbon_flux": 5.2})
 
     flagged = gee_utils.flag_anomalies(sample_series, z_threshold=1.8)
     assert len(flagged) == 12
-    # The outlier drop should be flagged as anomaly
     assert flagged[-1]["anomaly"] is True
     assert flagged[0]["anomaly"] is False

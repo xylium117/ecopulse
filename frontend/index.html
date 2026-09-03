@@ -12,11 +12,9 @@
   <meta name="author" content="EcoPulse Planetary Intelligence">
   <meta name="theme-color" content="#020617">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="alternate icon" href="favicon.svg">
 
-  <!-- Open Graph / Facebook / LinkedIn Sharing Preview -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://xylium117.github.io/ecopulse/">
   <meta property="og:site_name" content="EcoPulse">
@@ -25,7 +23,6 @@
     content="Planetary climate analytics engine with NDVI vegetation tracking, carbon flux anomaly alerts, and spatio-temporal deep learning wildfire segmentation over Sentinel-2 and Landsat imagery.">
   <meta property="og:image" content="https://raw.githubusercontent.com/xylium117/ecopulse/main/frontend/favicon.svg">
 
-  <!-- Twitter Card Sharing Preview -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://xylium117.github.io/ecopulse/">
   <meta name="twitter:title" content="EcoPulse — Planetary Climate Analytics Engine">
@@ -33,38 +30,29 @@
     content="Planetary climate analytics engine with NDVI vegetation tracking, carbon flux anomaly alerts, and deep learning segmentation.">
   <meta name="twitter:image" content="https://raw.githubusercontent.com/xylium117/ecopulse/main/frontend/favicon.svg">
 
-  <!-- Typography: Space Grotesk, IBM Plex Sans, IBM Plex Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet">
 
-  <!-- Open Satellite Engine (Leaflet) - No API Key Required -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Mapbox GL JS (Optional 3D Globe) -->
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
 
-  <!-- KaTeX LaTeX Typesetting Engine -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-  <!-- EcoPulse Design System Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
   <div id="app">
-    <!-- ====================================================================
-         Sidebar Controls & Planetary Telemetry
-         ==================================================================== -->
     <aside id="sidebar" class="custom-scroll">
-      <!-- Header -->
       <div>
         <div class="header-top">
           <div class="brand">
@@ -93,7 +81,8 @@
         <div class="brand-meta">
           <span class="brand-sub">Planetary Climate Analytics Engine</span>
         </div>
-      </div> <!-- System Metrics -->
+      </div>
+
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Telemetry Metrics</span>
@@ -133,7 +122,6 @@
         </div>
       </div>
 
-      <!-- Layer Controls -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Multi-Spectral Raster Layers</span>
@@ -158,7 +146,6 @@
         </div>
       </div>
 
-      <!-- Multi-Spectral Timeseries Graph -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Multi-Spectral Indices</span>
@@ -178,7 +165,6 @@
         </div>
       </div>
 
-      <!-- Agricultural Drought Risk Assessment & VCI Threshold Simulator -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Drought Risk Index (VCI)</span>
@@ -193,7 +179,6 @@
             <span style="color: var(--ink-faint);">0% Drought — 100% Optimal</span>
           </div>
 
-          <!-- Interactive VCI Sensitivity / Alert Cutoff Slider -->
           <div class="vci-slider-wrap"
             style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
@@ -215,7 +200,6 @@
         </div>
       </div>
 
-      <!-- Real-Time Alerts Feed -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Planetary Alert Stream</span>
@@ -223,11 +207,9 @@
             style="background: rgba(239, 68, 68, 0.15); color: var(--flame-bright); border-color: rgba(239, 68, 68, 0.35);">REAL-TIME</span>
         </div>
         <div id="alert-feed-list" class="alert-feed-list custom-scroll">
-          <!-- Populated dynamically via JS -->
         </div>
       </div>
 
-      <!-- Spatio-Temporal AI Wildfire & Deforestation Segmentation Studio -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Deep Learning Segmentation</span>
@@ -254,7 +236,7 @@
 
           <button id="btn-run-inference" class="btn-primary">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
+                stroke-linecap="round" stroke-linejoin="round">
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
             <span>Run Spatio-Temporal Segmentation</span>
@@ -295,7 +277,6 @@
         </div>
       </div>
 
-      <!-- Footer -->
       <footer class="sidebar-foot">
         <div>ECOPULSE ENGINE · V1.0</div>
         <div class="tech-pills">
@@ -308,24 +289,17 @@
       </footer>
     </aside>
 
-    <!-- ====================================================================
-         Map Viewport (Dual Engine: Open Satellite / Mapbox 3D Globe)
-         ==================================================================== -->
     <main id="map-wrap">
-      <!-- Open Satellite Engine Container (Leaflet + ESRI World Imagery) -->
       <div id="leaflet-map"></div>
 
-      <!-- Optional Mapbox 3D Globe Container -->
       <div id="map" style="display: none;"></div>
 
-      <!-- Telemetry HUD Top Left -->
       <div id="map-hud">
         <div id="hud-region">AMAZON BASIN, BRAZIL</div>
         <div id="hud-coords">LON -62.50 · LAT -4.50 · ZOOM 5.5</div>
         <div id="hud-sensor">SENSOR: SENTINEL-2 MSI (10M)</div>
       </div>
 
-      <!-- Map Engine Switcher (Open Satellite vs Mapbox 3D Globe) -->
       <div id="map-engine-bar">
         <button class="engine-btn active" id="engine-leaflet-btn" data-engine="leaflet" title="Open Satellite Engine">
           <span
@@ -337,7 +311,6 @@
         </button>
       </div>
 
-      <!-- Quick Region Jump Bar -->
       <div id="quick-regions">
         <button class="quick-region-btn active" data-region="amazon">Amazon</button>
         <button class="quick-region-btn" data-region="congo">Congo</button>
@@ -348,7 +321,6 @@
         <button class="quick-region-btn" data-region="siberia">Siberia</button>
       </div>
 
-      <!-- Map Legend -->
       <div id="legend">
         <div class="legend-item">
           <span class="legend-swatch" style="background: #10b981;"></span>
@@ -370,9 +342,6 @@
     </main>
   </div>
 
-  <!-- ====================================================================
-       Settings & API Key Credentials Modal
-       ==================================================================== -->
   <div id="modal-settings" class="modal-backdrop">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -416,9 +385,6 @@
     </div>
   </div>
 
-  <!-- ====================================================================
-       Deep Learning Model Explainer Modal
-       ==================================================================== -->
   <div id="modal-ai-explainer" class="modal-backdrop" role="dialog" aria-modal="true"
     aria-labelledby="explainer-modal-title">
     <div class="modal-dialog modal-dialog-lg">
@@ -434,7 +400,6 @@
       <div class="modal-body custom-scroll"
         style="max-height: 72vh; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
 
-        <!-- 1. High-Level Intuitive Summary -->
         <div
           style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 14px; font-size: 12.5px; line-height: 1.6; color: #E2E8F0;">
           <strong style="color: #fff; display: block; margin-bottom: 6px; font-size: 14px;">An "MRI Scanner" for Planet
@@ -448,7 +413,6 @@
           to detect forest loss, carbon release, and drought in real time.
         </div>
 
-        <!-- 2. The 3 Light Bands Explained Simply -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
           <div
             style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
@@ -490,7 +454,6 @@
           </div>
         </div>
 
-        <!-- 3. LaTeX Mathematical Formulations -->
         <div
           style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
           <div
@@ -499,7 +462,6 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 12px;">
-            <!-- Formula 1: NDVI -->
             <div
               style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #10b981;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
@@ -516,7 +478,6 @@
               </div>
             </div>
 
-            <!-- Formula 2: NBR & Delta-NBR -->
             <div
               style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #ef4444;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
@@ -534,7 +495,6 @@
               </div>
             </div>
 
-            <!-- Formula 3: VCI Drought -->
             <div
               style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #06b6d4;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
@@ -547,101 +507,98 @@
               </div>
               <div style="font-size: 10.5px; color: var(--ink-muted);">
                 Compares current canopy greenness against historical multi-year extremes. Values $< 35\%$ trigger
-                  moisture deficit advisories. </div>
-              </div>
-
-              <!-- Formula 4: Carbon Flux -->
-              <div
-                style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #fbbf24;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                  <strong style="color: #fbbf24; font-size: 11.5px;">4. Estimated Carbon Emissions ($\text{CO}_2\text{
-                    Flux}$)</strong>
-                  <span style="font-size: 10px; color: var(--ink-muted);">Biomass Loss Conversion</span>
-                </div>
-                <div style="font-size: 13px; color: #fff; margin: 4px 0;">
-                  $$\text{Emissions (kt CO}_2) = \text{Area (ha)} \times \rho_{\text{biomass}} \times 0.47 \times
-                  \frac{44}{12} \times 10^{-3}$$
-                </div>
-                <div style="font-size: 10.5px; color: var(--ink-muted);">
-                  Where $\rho_{\text{biomass}} \approx 280\text{ t/ha}$ in tropical rainforests, $47\%$ is organic
-                  carbon content, and $\frac{44}{12}$ converts $\text{C}$ into $\text{CO}_2$.
-                </div>
+                  moisture deficit advisories.
               </div>
             </div>
-          </div>
 
-          <!-- 4. The 4-Step Spatio-Temporal Deep Learning Pipeline -->
-          <div>
             <div
-              style="font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--spectral-bright); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">
-              How the AI Neural Network Thinks (4 Steps)
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-              <div
-                style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
-                <div
-                  style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--veg-bright); margin-bottom: 4px; font-weight: 700;">
-                  STEP 1: SENSOR INGESTION</div>
-                <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Time-Stacked Tensors
-                </div>
-                <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                  The model loads multi-spectral tiles across 2 time steps ($T_0$ pre-event baseline and $T_1$
-                  post-event pass) as a single $5\text{D}$ tensor: $(B, T=2, H=256, W=256, C=3)$.
-                </div>
+              style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #fbbf24;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <strong style="color: #fbbf24; font-size: 11.5px;">4. Estimated Carbon Emissions ($\text{CO}_2\text{
+                  Flux}$)</strong>
+                <span style="font-size: 10px; color: var(--ink-muted);">Biomass Loss Conversion</span>
               </div>
-
-              <div
-                style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
-                <div
-                  style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--spectral-bright); margin-bottom: 4px; font-weight: 700;">
-                  STEP 2: SPATIAL ENCODER</div>
-                <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">2D Convolutions</div>
-                <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                  Shared $32 \to 64 \to 128$ convolutional filters extract canopy texture, river valleys, terrain
-                  ridges, and unpaved logging roads independently for each image.
-                </div>
+              <div style="font-size: 13px; color: #fff; margin: 4px 0;">
+                $$\text{Emissions (kt CO}_2) = \text{Area (ha)} \times \rho_{\text{biomass}} \times 0.47 \times
+                \frac{44}{12} \times 10^{-3}$$
               </div>
-
-              <div
-                style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
-                <div
-                  style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--flame-bright); margin-bottom: 4px; font-weight: 700;">
-                  STEP 3: TEMPORAL MEMORY</div>
-                <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">ConvLSTM2D Delta Gating
-                </div>
-                <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                  A recurrent convolutional memory cell compares $T_0$ and $T_1$. It ignores harmless seasonal tree leaf
-                  changes and isolates true charcoal burns and clear-cut logging.
-                </div>
-              </div>
-
-              <div
-                style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
-                <div
-                  style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #A78BFA; margin-bottom: 4px; font-weight: 700;">
-                  STEP 4: DAMAGE MAP OUTPUT</div>
-                <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">U-Net Transposed
-                  Decoder</div>
-                <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                  Upsamples features with skip connections to output a precise $256 \times 256$ probability mask, which
-                  is vectorised into glowing GeoJSON damage polygons on the map.
-                </div>
+              <div style="font-size: 10.5px; color: var(--ink-muted);">
+                Where $\rho_{\text{biomass}} \approx 280\text{ t/ha}$ in tropical rainforests, $47\%$ is organic
+                carbon content, and $\frac{44}{12}$ converts $\text{C}$ into $\text{CO}_2$.
               </div>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-primary" id="btn-close-explainer-done">Got It</button>
+
+        <div>
+          <div
+            style="font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--spectral-bright); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">
+            How the AI Neural Network Thinks (4 Steps)
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--veg-bright); margin-bottom: 4px; font-weight: 700;">
+                STEP 1: SENSOR INGESTION</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Time-Stacked Tensors
+              </div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                The model loads multi-spectral tiles across 2 time steps ($T_0$ pre-event baseline and $T_1$
+                post-event pass) as a single $5\text{D}$ tensor: $(B, T=2, H=256, W=256, C=3)$.
+              </div>
+            </div>
+
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--spectral-bright); margin-bottom: 4px; font-weight: 700;">
+                STEP 2: SPATIAL ENCODER</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">2D Convolutions</div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                Shared $32 \to 64 \to 128$ convolutional filters extract canopy texture, river valleys, terrain
+                ridges, and unpaved logging roads independently for each image.
+              </div>
+            </div>
+
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--flame-bright); margin-bottom: 4px; font-weight: 700;">
+                STEP 3: TEMPORAL MEMORY</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">ConvLSTM2D Delta Gating
+              </div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                A recurrent convolutional memory cell compares $T_0$ and $T_1$. It ignores harmless seasonal tree leaf
+                changes and isolates true charcoal burns and clear-cut logging.
+              </div>
+            </div>
+
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #A78BFA; margin-bottom: 4px; font-weight: 700;">
+                STEP 4: DAMAGE MAP OUTPUT</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">U-Net Transposed
+                Decoder</div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                Upsamples features with skip connections to output a precise $256 \times 256$ probability mask, which
+                is vectorised into glowing GeoJSON damage polygons on the map.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-close-explainer-done">Got It</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Toast Notification Feedback -->
-    <div id="toast" class="toast">Action completed.</div>
+  <div id="toast" class="toast">Action completed.</div>
 
-    <!-- Application Logic -->
-    <script src="js/app.js"></script>
+  <script src="js/app.js"></script>
 </body>
 
 </html>

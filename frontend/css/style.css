@@ -1,7 +1,3 @@
-/* ==============================================================================
-   EcoPulse — Planetary Climate Analytics Design System
-   ============================================================================== */
-
 :root {
   --bg: #06090e;
   --surface-base: #0c1219;
@@ -63,9 +59,6 @@ html, body {
   font-family: 'IBM Plex Mono', monospace;
 }
 
-/* ------------------------------------------------------------------------------
-   Application Layout Grid
-   ------------------------------------------------------------------------------ */
 #app {
   display: grid;
   grid-template-columns: 390px 1fr;
@@ -74,9 +67,6 @@ html, body {
   position: relative;
 }
 
-/* ------------------------------------------------------------------------------
-   Sidebar Styling
-   ------------------------------------------------------------------------------ */
 #sidebar {
   background: var(--surface-glass);
   backdrop-filter: blur(16px);
@@ -92,7 +82,6 @@ html, body {
   box-shadow: var(--shadow-panel);
 }
 
-/* Custom Scrollbar */
 #sidebar::-webkit-scrollbar,
 .custom-scroll::-webkit-scrollbar {
   width: 5px;
@@ -111,7 +100,6 @@ html, body {
   background: rgba(255, 255, 255, 0.30);
 }
 
-/* Header & Brand */
 .header-top {
   display: flex;
   align-items: center;
@@ -188,7 +176,6 @@ html, body {
   border-color: var(--line-highlight);
 }
 
-/* Panels */
 .panel {
   background: var(--surface-panel);
   border: 1px solid var(--line);
@@ -230,7 +217,6 @@ html, body {
   color: var(--veg-bright);
 }
 
-/* System Metrics Grid */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -265,7 +251,6 @@ html, body {
   font-family: 'IBM Plex Mono', monospace;
 }
 
-/* Region Selector & Preset Controls */
 .select-input {
   width: 100%;
   background: var(--surface-base);
@@ -285,7 +270,6 @@ html, body {
   box-shadow: 0 0 0 2px var(--veg-glow);
 }
 
-/* Layer Switcher */
 .layer-pills {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -321,7 +305,6 @@ html, body {
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.20);
 }
 
-/* Multi-Spectral NDVI Chart */
 .chart-controls {
   display: flex;
   gap: 6px;
@@ -372,7 +355,6 @@ html, body {
   color: var(--ink-muted);
 }
 
-/* Drought Status Widget */
 .drought-widget {
   display: flex;
   flex-direction: column;
@@ -408,7 +390,6 @@ html, body {
   line-height: 1.4;
 }
 
-/* Custom Cyber Range Slider */
 .custom-range-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -454,7 +435,6 @@ html, body {
   cursor: pointer;
 }
 
-/* Anomaly & Alert Feed */
 .alert-feed-list {
   display: flex;
   flex-direction: column;
@@ -527,7 +507,6 @@ html, body {
   color: var(--ink-muted);
 }
 
-/* AI Wildfire & Deforestation Segmentation Studio */
 .studio-box {
   display: flex;
   flex-direction: column;
@@ -620,7 +599,6 @@ html, body {
   font-weight: 500;
 }
 
-/* Sidebar Footer */
 .sidebar-foot {
   margin-top: auto;
   padding-top: 14px;
@@ -649,9 +627,6 @@ html, body {
   color: var(--ink-muted);
 }
 
-/* ------------------------------------------------------------------------------
-   Map Container & HUD Overlays
-   ------------------------------------------------------------------------------ */
 #map-wrap {
   position: relative;
   width: 100%;
@@ -669,7 +644,6 @@ html, body {
   background: #020408;
 }
 
-/* Leaflet Dark Theme Overrides */
 .leaflet-container {
   background: #020408 !important;
   font-family: 'IBM Plex Sans', sans-serif !important;
@@ -717,7 +691,6 @@ html, body {
   background: var(--surface-base) !important;
 }
 
-/* Map HUD Overlays */
 #map-hud {
   position: absolute;
   top: 18px;
@@ -756,7 +729,6 @@ html, body {
   margin-top: 2px;
 }
 
-/* Map Engine Toggle Bar */
 #map-engine-bar {
   position: absolute;
   top: 18px;
@@ -795,7 +767,6 @@ html, body {
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
 }
 
-/* Quick Region Jump Bar */
 #quick-regions {
   position: absolute;
   top: 66px;
@@ -825,7 +796,6 @@ html, body {
   border-color: var(--veg-bright);
 }
 
-/* Legend */
 #legend {
   position: absolute;
   bottom: 24px;
@@ -858,7 +828,6 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Custom Marker Styling */
 .pulse-map-pin {
   width: 14px;
   height: 14px;
@@ -876,9 +845,6 @@ html, body {
   animation: pulseGlow 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-/* ------------------------------------------------------------------------------
-   Modal / Settings Dialog
-   ------------------------------------------------------------------------------ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1009,7 +975,6 @@ html, body {
   color: #fff;
 }
 
-/* Toast Notifications */
 .toast {
   position: fixed;
   bottom: 24px;
@@ -1033,9 +998,6 @@ html, body {
   opacity: 1;
 }
 
-/* ------------------------------------------------------------------------------
-   Responsive Breakdown
-   ------------------------------------------------------------------------------ */
 @media (max-width: 900px) {
   #app {
     grid-template-columns: 1fr;
