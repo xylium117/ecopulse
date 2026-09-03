@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ecopulse-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: GEE_API_KEY
+        sync: false
+      - key: MAPBOX_TOKEN
+        sync: false
