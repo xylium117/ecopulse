@@ -6,14 +6,4 @@ Pillow==10.4.0
 mercantile==1.2.1
 python-multipart==0.0.9
 python-dotenv==1.0.1
-
-# Machine learning (CPU-optimized for cloud deployment)
-tensorflow-cpu==2.17.0
-
-# Earth Engine — optional at runtime (module falls back to mock data if
-# unauthenticated or uninstalled), but required to hit real GEE endpoints.
 earthengine-api==1.1.2
-
-# Dev/test
-httpx==0.27.2
-pytest==8.3.3
