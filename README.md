@@ -26,26 +26,6 @@ The project combines a Python FastAPI telemetry engine, a Spatio-Temporal U-Net 
 - Exportable planetary telemetry reports and regional environmental impact summaries
 - Glassmorphic command center interface with responsive telemetry counters, charts, and interactive layer compositing
 
-## Project Layout
-
-```text
-ecopulse/
-├── backend/          FastAPI REST API, Earth Engine ingestion, and deep learning segmentation
-│   ├── app.py        FastAPI application & route definitions
-│   ├── gee_utils.py  Google Earth Engine pipeline & telemetry processor
-│   ├── model.py      Spatio-temporal U-Net with ConvLSTM2D bottleneck
-│   ├── tests/        Automated pytest test suite
-│   └── Dockerfile    FastAPI container definition
-├── frontend/         Glassmorphic command center dashboard
-│   ├── index.html    Semantic dashboard UI
-│   ├── css/          Command center design system & glassmorphism styling
-│   ├── js/           Leaflet & Mapbox telemetry rendering logic
-│   ├── nginx.conf    Production reverse-proxy & caching configuration
-│   └── Dockerfile    Nginx static container definition
-├── .github/          GitHub Actions deployment & CI workflows
-└── docker-compose.yml Orchestrated multi-container production deployment
-```
-
 ## Requirements
 
 - Python 3.10 or newer and `pip`
