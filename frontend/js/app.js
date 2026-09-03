@@ -6,7 +6,7 @@
   const safeEngine = (rawSavedEngine === "mapbox" && rawToken.length > 20 && !rawToken.includes("example")) ? "mapbox" : "leaflet";
 
   const state = {
-    apiBase: window.ECOPULSE_API_BASE || localStorage.getItem("ecopulse_api_base") || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:8000" : ""),
+    apiBase: window.ECOPULSE_API_BASE || localStorage.getItem("ecopulse_api_base") || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:8000" : "https://ecopulse-1-uzog.onrender.com"),
     mapboxToken: rawToken,
     currentEngine: safeEngine,
     activeLayer: "ndvi",
