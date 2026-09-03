@@ -29,7 +29,15 @@ def build_spatiotemporal_unet(
     import tensorflow as tf
     from tensorflow.keras import layers, models
 
-    def conv_block(x, filters):
+    def make_encoder_block(filters: int):
+        return models.Sequential([
+            layers.Conv2D(filters, 3, padding="same", activation="relu"),
+            layers.BatchNormalization(),
+            layers.Conv2D(filters, 3, padding="same", activation="relu"),
+            layers.BatchNormalization(),
+        ])
+
+    def conv_block(x, filters: int):
         x = layers.Conv2D(filters, 3, padding="same", activation="relu")(x)
         x = layers.BatchNormalization()(x)
         x = layers.Conv2D(filters, 3, padding="same", activation="relu")(x)
@@ -38,13 +46,16 @@ def build_spatiotemporal_unet(
 
     inputs = layers.Input(shape=(time_steps, input_size, input_size, bands), name="pre_post_temporal_stack")
 
-    td_conv1 = layers.TimeDistributed(layers.Lambda(lambda x: conv_block(x, 64)))(inputs)
+    enc1 = make_encoder_block(64)
+    td_conv1 = layers.TimeDistributed(enc1)(inputs)
     td_pool1 = layers.TimeDistributed(layers.MaxPooling2D(2))(td_conv1)
 
-    td_conv2 = layers.TimeDistributed(layers.Lambda(lambda x: conv_block(x, 128)))(td_pool1)
+    enc2 = make_encoder_block(128)
+    td_conv2 = layers.TimeDistributed(enc2)(td_pool1)
     td_pool2 = layers.TimeDistributed(layers.MaxPooling2D(2))(td_conv2)
 
-    td_conv3 = layers.TimeDistributed(layers.Lambda(lambda x: conv_block(x, 256)))(td_pool2)
+    enc3 = make_encoder_block(256)
+    td_conv3 = layers.TimeDistributed(enc3)(td_pool2)
     td_pool3 = layers.TimeDistributed(layers.MaxPooling2D(2))(td_conv3)
 
     bottleneck = layers.ConvLSTM2D(
@@ -302,7 +313,12 @@ class WildfireSegmenter:
 
         if self._tf_available and self._model is not None:
             batch = np.expand_dims(pair, axis=0)
-            raw_prob = self._model.predict(batch, verbose=0)[0, ..., 0]
+            try:
+                raw_prob = self._model.predict(batch, verbose=0)[0, ..., 0]
+            except Exception as exc:
+                logger.warning("TensorFlow predict exception (%s); fallback to spectral segmenter.", exc)
+                spectral_diff = (pre_img[..., 1] - post_img[..., 1]) + (post_img[..., 0] - pre_img[..., 0])
+                raw_prob = 1.0 / (1.0 + np.exp(-12.0 * (spectral_diff - 0.22)))
         else:
             spectral_diff = (pre_img[..., 1] - post_img[..., 1]) + (post_img[..., 0] - pre_img[..., 0])
             raw_prob = 1.0 / (1.0 + np.exp(-12.0 * (spectral_diff - 0.22)))
