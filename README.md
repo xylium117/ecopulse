@@ -50,7 +50,7 @@ The platform provides dual operational modes:
 
 ```mermaid
 graph TD
-    Client["Client Web Interface (client/)<br>• Leaflet + ESRI Satellite<br>• Mapbox GL 3D Globe<br>• Glassmorphic Telemetry HUD"]
+    Client["Client Web Interface (client/)<br>• Leaflet + ESRI Satellite<br>• Mapbox GL 3D Globe<br>• Telemetry HUD"]
     
     API["FastAPI Server (server/app.py)<br>• REST API & Dynamic XYZ Tile Generator<br>• CORS & Viewport Filtering"]
     
