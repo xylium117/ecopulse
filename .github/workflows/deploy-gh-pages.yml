@@ -34,8 +34,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Deploy the contents of the frontend directory
-          path: './frontend'
+          # Deploy the contents of the client directory
+          path: './client'
 
       - name: Deploy to GitHub Pages
         id: deployment
