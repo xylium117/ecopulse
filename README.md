@@ -1,4 +1,4 @@
-# EcoPulse 🌍⚡
+# EcoPulse 🌍
 
 > **Planetary Climate Analytics & Multi-Hazard Earth Observation Platform**  
 > Real-time monitoring of wildfire burn scars, flash flood inundation, agricultural drought risk, carbon flux anomalies, and planetary vegetation dynamics powered by multi-sensor satellite telemetry and spatio-temporal deep learning.
