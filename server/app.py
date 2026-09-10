@@ -282,6 +282,7 @@ def get_flood_risk(
 
 @app.get("/api/alerts")
 def get_alerts(
+    hazard_mode: Optional[str] = Query(default=None, description="Optional hazard filter: flood | wildfire"),
     lon_min: Optional[float] = Query(default=None, description="Optional west longitude for viewport filtering"),
     lat_min: Optional[float] = Query(default=None, description="Optional south latitude for viewport filtering"),
     lon_max: Optional[float] = Query(default=None, description="Optional east longitude for viewport filtering"),
@@ -291,7 +292,7 @@ def get_alerts(
     if lon_min is not None and lat_min is not None and lon_max is not None and lat_max is not None:
         if lon_min < lon_max and lat_min < lat_max:
             bbox = [lon_min, lat_min, lon_max, lat_max]
-    return gee_utils.get_planetary_alerts(bbox=bbox)
+    return gee_utils.get_planetary_alerts(bbox=bbox, hazard_mode=hazard_mode)
 
 
 @app.post("/api/inference/wildfire", response_model=WildfireInferenceResponse)

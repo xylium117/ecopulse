@@ -91,10 +91,8 @@ def train_flood_risk_model(csv_path: str = CSV_PATH, max_rows: int = 150000) -> 
     n_samples, n_features = X.shape
     logger.info("Loaded %d training records across %d hydrological features.", n_samples, n_features)
 
-    # Add intercept column
     X_bias = np.hstack([np.ones((n_samples, 1), dtype=np.float64), X])
 
-    # Normal Equation with L2 Ridge regularizer: w = (X^T X + lambda I)^(-1) X^T y
     ridge_lambda = 1e-3
     XTX = np.dot(X_bias.T, X_bias)
     reg_matrix = ridge_lambda * np.eye(n_features + 1)
@@ -104,7 +102,6 @@ def train_flood_risk_model(csv_path: str = CSV_PATH, max_rows: int = 150000) -> 
     intercept = float(w[0])
     coefs = w[1:]
 
-    # Model evaluation
     y_pred = np.dot(X_bias, w)
     ss_res = float(np.sum((y - y_pred) ** 2))
     ss_tot = float(np.sum((y - np.mean(y)) ** 2))
@@ -169,10 +166,8 @@ def generate_synthetic_dataset(num_samples: int = 64, img_size: int = 256):
 
 def train_and_export():
     os.makedirs(WEIGHTS_DIR, exist_ok=True)
-    # 1. Train flood risk model on train.csv
     train_flood_risk_model()
 
-    # 2. Build or manifest Spatio-temporal U-Net
     try:
         try:
             from server.model import build_spatiotemporal_unet

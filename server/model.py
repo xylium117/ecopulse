@@ -143,7 +143,6 @@ class WildfireSegmenter:
         is_land = is_land_region(center_lat, center_lon)
 
         if not is_land:
-            # Ocean water baseline: deep blue, zero disturbance
             pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
             pre[..., 0] = 0.04 + 0.01 * np.sin(xx / 40)
             pre[..., 1] = 0.12 + 0.02 * np.cos(yy / 40)
@@ -558,7 +557,6 @@ class FloodSegmenter:
         is_land = is_land_region(center_lat, center_lon)
 
         if not is_land:
-            # Ocean water baseline: deep blue, zero terrestrial inundation
             pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
             pre[..., 0] = 0.04 + 0.01 * np.sin(xx / 40)
             pre[..., 1] = 0.12 + 0.02 * np.cos(yy / 40)
@@ -590,24 +588,20 @@ class FloodSegmenter:
             }
             return pre, post, meta
 
-        # Base land cover (cropland / urban / hills)
         pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
         pre[..., 0] = 0.22 + 0.05 * np.sin(xx / 30)
         pre[..., 1] = 0.44 + 0.06 * np.cos(yy / 30)
         pre[..., 2] = 0.18 + 0.03 * np.sin(yy / 40)
 
-        # Baseline river / channel winding through scene
         river_center = 128 + np.sin(yy / 25) * 35 + np.cos(yy / 12) * 15
         river_mask_pre = np.abs(xx - river_center) < 7
 
-        # Water in pre: high absorption in NIR/SWIR, dark blue-cyan
         pre[river_mask_pre, 0] = 0.08
         pre[river_mask_pre, 1] = 0.25
         pre[river_mask_pre, 2] = 0.45
 
         post = pre.copy()
 
-        # Query regional hydrological telemetry to scale inundation to local FFSI
         try:
             from server.gee_utils import get_flash_flood_risk
         except ImportError:
@@ -616,7 +610,6 @@ class FloodSegmenter:
         ffsi = float(risk_data.get("flash_flood_susceptibility_pct", 50.0))
 
         if ffsi < 40.0:
-            # Low / nominal conditions (very minimal channel spread)
             flood_width = 8 + int(ffsi * 0.05)
             river_flood = np.abs(xx - river_center) < flood_width
             cx1, cy1 = rng.integers(70, INPUT_SIZE - 70, size=2)
@@ -624,7 +617,6 @@ class FloodSegmenter:
             basin_flood = ((xx - cx1)**2 / (r1**2) + (yy - cy1)**2 / (r2**2)) < 1.0
             inundation_mask = river_flood | basin_flood
         elif ffsi < 65.0:
-            # Moderate conditions (river corridor seasonal overflow)
             flood_width = 15 + int((ffsi - 40.0) * 0.3)
             river_flood = np.abs(xx - river_center) < flood_width
             cx1, cy1 = rng.integers(60, INPUT_SIZE - 60, size=2)
@@ -632,7 +624,6 @@ class FloodSegmenter:
             basin_flood = ((xx - cx1)**2 / (r1**2) + (yy - cy1)**2 / (r2**2)) < 1.0
             inundation_mask = river_flood | basin_flood
         elif ffsi < 82.0:
-            # High severity (severe flash flood surge)
             flood_width = 26 + int((ffsi - 65.0) * 0.5)
             river_flood = np.abs(xx - river_center) < flood_width
             cx1, cy1 = rng.integers(50, INPUT_SIZE - 50, size=2)
@@ -640,7 +631,6 @@ class FloodSegmenter:
             basin_flood = ((xx - cx1)**2 / (r1**2) + (yy - cy1)**2 / (r2**2)) < 1.0
             inundation_mask = river_flood | basin_flood
         else:
-            # Critical emergency (catastrophic cloudburst surge)
             flood_width = 38 + int((ffsi - 82.0) * 0.7)
             river_flood = np.abs(xx - river_center) < flood_width
             cx1, cy1 = rng.integers(40, INPUT_SIZE - 40, size=2)
@@ -648,7 +638,6 @@ class FloodSegmenter:
             basin_flood = ((xx - cx1)**2 / (r1**2) + (yy - cy1)**2 / (r2**2)) < 1.0
             inundation_mask = river_flood | basin_flood
 
-        # Turbid/muddy flood water in multi-spectral optical + SAR drop
         post[inundation_mask, 0] = 0.12 + rng.normal(0, 0.02, size=post[inundation_mask, 0].shape)
         post[inundation_mask, 1] = 0.38 + rng.normal(0, 0.02, size=post[inundation_mask, 1].shape)
         post[inundation_mask, 2] = 0.65 + rng.normal(0, 0.03, size=post[inundation_mask, 2].shape)
@@ -715,20 +704,17 @@ class FloodSegmenter:
             title = "Nepal & Tibet Flash Flood & Inundation Surge (Bagmati / Koshi Basin)"
             bbox = [85.10, 26.65, 86.20, 27.80]
             target_sev = "CRITICAL - CATASTROPHIC FLASH INUNDATION"
-            # Mountainous terrain with river gorges
             pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
             pre[..., 0] = 0.20 + 0.06 * np.cos(xx / 20)
             pre[..., 1] = 0.42 + 0.08 * np.sin(yy / 25)
             pre[..., 2] = 0.22 + 0.04 * np.cos(yy / 35)
 
-            # Bagmati river narrow gorge in dry/pre season
             river_curve = 120 + np.sin(yy / 30) * 45 + np.sin(yy / 12) * 15
             pre[np.abs(xx - river_curve) < 6, 0] = 0.06
             pre[np.abs(xx - river_curve) < 6, 1] = 0.20
             pre[np.abs(xx - river_curve) < 6, 2] = 0.50
 
             post = pre.copy()
-            # Violent cloudburst pulse & Koshi/Bagmati river surge breaking dykes (Critical)
             flood_pulse = (np.abs(xx - river_curve) < 48) | \
                           (((xx - 110)**2 / 75**2 + (yy - 140)**2 / 55**2) < 1) | \
                           (((xx - 170)**2 / 55**2 + (yy - 200)**2 / 40**2) < 1)
@@ -742,13 +728,11 @@ class FloodSegmenter:
             title = "India (Ganges & Brahmaputra Corridor) Flood Plain"
             bbox = [83.50, 24.80, 88.50, 27.50]
             target_sev = "HIGH - SEVERE FLASH FLOOD SURGE"
-            # Alluvial agricultural floodplain
             pre = np.zeros((INPUT_SIZE, INPUT_SIZE, 3), dtype=np.float32)
             pre[..., 0] = 0.24 + 0.04 * np.sin(xx / 35)
             pre[..., 1] = 0.46 + 0.06 * np.cos(yy / 35)
             pre[..., 2] = 0.19 + 0.03 * np.sin(yy / 45)
 
-            # Braided river system in dry season
             braid1 = np.abs(xx - (100 + np.sin(yy / 35) * 30)) < 9
             braid2 = np.abs(xx - (160 + np.cos(yy / 30) * 25)) < 7
             pre[braid1 | braid2, 0] = 0.07
@@ -756,7 +740,6 @@ class FloodSegmenter:
             pre[braid1 | braid2, 2] = 0.48
 
             post = pre.copy()
-            # Monsoon floodplain overflow across northern Bihar and Assam floodplains (High)
             submerged_basin = (((xx - 130)**2 / 58**2 + (yy - 130)**2 / 42**2) < 1) | \
                               (np.abs(xx - (125 + np.sin(yy / 35) * 35)) < 28)
             post[submerged_basin, 0] = 0.11 + rng.normal(0, 0.02, size=post[submerged_basin, 0].shape)
@@ -774,7 +757,6 @@ class FloodSegmenter:
             pre[..., 2] = 0.20 + 0.03 * np.cos(yy / 40)
 
             post = pre.copy()
-            # Dry ravine (rambla) sudden surge into coastal settlements (High)
             rambla = ((np.abs(xx - (130 + np.sin(yy / 20) * 30)) < 25) & (yy > 50)) | \
                      (((xx - 145)**2 / 46**2 + (yy - 180)**2 / 34**2) < 1)
             post[rambla, 0] = 0.15 + rng.normal(0, 0.02, size=post[rambla, 0].shape)
@@ -792,7 +774,6 @@ class FloodSegmenter:
             pre[..., 2] = 0.26 + 0.04 * np.sin(yy / 35)
 
             post = pre.copy()
-            # Moderate deltaic seasonal floodplain swell
             delta_flood = (((xx - 128)**2 / 42**2 + (yy - 128)**2 / 32**2) < 1) | \
                           (np.abs(xx - 130) < 14)
             post[delta_flood, 0] = 0.10
@@ -834,9 +815,6 @@ class FloodSegmenter:
 
         pair = np.stack([pre_img, post_img], axis=0)
 
-        # Multi-spectral water index MNDWI delta: (Green - SWIR) / (Green + SWIR)
-        # In our 3-band RGB proxy representation, Band 2 (Blue-Cyan) represents MNDWI / Water absorption
-        # Water expansion shows significant increase in Band 2 and drop in NIR/Red reflectance
         spectral_water_diff = (post_img[..., 2] - pre_img[..., 2]) * 1.6 + (pre_img[..., 0] - post_img[..., 0]) * 0.8
 
         if self._tf_available and self._model is not None:
@@ -855,11 +833,9 @@ class FloodSegmenter:
         flooded_pixels = int(np.sum(binary_mask))
         flooded_ratio = float(flooded_pixels / (total_pixels or 1))
 
-        # Area mapping based on 10m Ground Sample Distance (GSD)
         area_hectares = round(flooded_pixels * 0.01 * 9.2, 1)
         submerged_cropland_ha = round(area_hectares * 0.68, 1)
 
-        # Self-computed anomaly metrics from model feature bottlenecks
         mean_delta = float(np.mean(spectral_water_diff))
         std_delta = float(np.std(spectral_water_diff)) or 1e-5
         max_delta = float(np.max(spectral_water_diff))
@@ -934,7 +910,6 @@ class FloodSegmenter:
         overlay = base_uint.copy()
 
         water_mask = prob_map > 0.38
-        # Luminous electric cyan/blue flood coloring (#06B6D4 / #38BDF8)
         overlay[water_mask, 0] = np.clip(overlay[water_mask, 0] * 0.25 + 6, 0, 255).astype(np.uint8)
         overlay[water_mask, 1] = np.clip(overlay[water_mask, 1] * 0.30 + 182, 0, 255).astype(np.uint8)
         overlay[water_mask, 2] = np.clip(overlay[water_mask, 2] * 0.30 + 212, 0, 255).astype(np.uint8)

@@ -50,12 +50,10 @@
     metricAnomaliesSub: document.getElementById("metric-anomalies-sub"),
     metricClock: document.getElementById("metric-clock"),
 
-    // Separated Raster Layer Containers
     layerPillsWildfire: document.getElementById("layer-pills-wildfire"),
     layerPillsFlood: document.getElementById("layer-pills-flood"),
     layerBtns: document.querySelectorAll(".layer-btn"),
 
-    // Separated Chart Tab Containers
     chartTabsWildfire: document.getElementById("chart-tabs-wildfire"),
     chartTabsFlood: document.getElementById("chart-tabs-flood"),
     chartTabs: document.querySelectorAll(".chart-tab"),
@@ -66,7 +64,6 @@
     chartEnd: document.getElementById("chart-end"),
     chartStatus: document.getElementById("chart-status"),
 
-    // Hazard-Specific Panels
     panelDroughtSection: document.getElementById("panel-drought-section"),
     droughtScore: document.getElementById("drought-score"),
     droughtClass: document.getElementById("drought-class"),
@@ -113,12 +110,10 @@
     hudCoords: document.getElementById("hud-coords"),
     hudSensor: document.getElementById("hud-sensor"),
 
-    // Separated Quick Regions Containers
     quickRegionsWildfire: document.getElementById("quick-regions-wildfire"),
     quickRegionsFlood: document.getElementById("quick-regions-flood"),
     quickRegions: document.querySelectorAll(".quick-region-btn"),
 
-    // Separated Legend Containers
     legendItemsWildfire: document.getElementById("legend-items-wildfire"),
     legendItemsFlood: document.getElementById("legend-items-flood"),
 
@@ -592,23 +587,18 @@
     if (elements.tabHazardFlood) elements.tabHazardFlood.classList.toggle("active", hazard === "flood");
 
     if (hazard === "wildfire") {
-      // Toggle layer pills
       if (elements.layerPillsWildfire) elements.layerPillsWildfire.style.display = "flex";
       if (elements.layerPillsFlood) elements.layerPillsFlood.style.display = "none";
 
-      // Toggle chart tabs
       if (elements.chartTabsWildfire) elements.chartTabsWildfire.style.display = "flex";
       if (elements.chartTabsFlood) elements.chartTabsFlood.style.display = "none";
 
-      // Toggle quick regions
       if (elements.quickRegionsWildfire) elements.quickRegionsWildfire.style.display = "flex";
       if (elements.quickRegionsFlood) elements.quickRegionsFlood.style.display = "none";
 
-      // Toggle legends
       if (elements.legendItemsWildfire) elements.legendItemsWildfire.style.display = "block";
       if (elements.legendItemsFlood) elements.legendItemsFlood.style.display = "none";
 
-      // Toggle panels & labels
       if (elements.panelDroughtSection) elements.panelDroughtSection.style.display = "block";
       if (elements.panelFloodSection) elements.panelFloodSection.style.display = "none";
       if (elements.metricsPanelTitle) elements.metricsPanelTitle.textContent = "Telemetry Metrics (Wildfire)";
@@ -625,23 +615,18 @@
       state.activeLayer = "ndvi";
       state.activeMetric = "ndvi";
     } else {
-      // Toggle layer pills
       if (elements.layerPillsWildfire) elements.layerPillsWildfire.style.display = "none";
       if (elements.layerPillsFlood) elements.layerPillsFlood.style.display = "flex";
 
-      // Toggle chart tabs
       if (elements.chartTabsWildfire) elements.chartTabsWildfire.style.display = "none";
       if (elements.chartTabsFlood) elements.chartTabsFlood.style.display = "flex";
 
-      // Toggle quick regions
       if (elements.quickRegionsWildfire) elements.quickRegionsWildfire.style.display = "none";
       if (elements.quickRegionsFlood) elements.quickRegionsFlood.style.display = "flex";
 
-      // Toggle legends
       if (elements.legendItemsWildfire) elements.legendItemsWildfire.style.display = "none";
       if (elements.legendItemsFlood) elements.legendItemsFlood.style.display = "block";
 
-      // Toggle panels & labels
       if (elements.panelDroughtSection) elements.panelDroughtSection.style.display = "none";
       if (elements.panelFloodSection) elements.panelFloodSection.style.display = "block";
       if (elements.metricsPanelTitle) elements.metricsPanelTitle.textContent = "Telemetry Metrics (Flash Flood)";
@@ -659,7 +644,6 @@
       state.activeMetric = "rainfall_mm";
     }
 
-    // Refresh active states on buttons
     const activeLayerContainer = hazard === "wildfire" ? elements.layerPillsWildfire : elements.layerPillsFlood;
     if (activeLayerContainer) {
       activeLayerContainer.querySelectorAll(".layer-btn").forEach((btn) => {
@@ -677,6 +661,7 @@
     updateActiveRasterLayer();
     drawChart(state.activeMetric);
     fetchRealTimeMetrics();
+    loadAlerts();
     showToast(`Switched mode to: ${hazard === "wildfire" ? "Wildfire & Biomass Engine" : "Flash Flood & Inundation Engine"}`);
   }
 
@@ -806,7 +791,6 @@
       const ndwi = +(ndvi * 0.72 - 0.05).toFixed(4);
       const carbon = +((1 - ndvi) * 4.8).toFixed(2);
 
-      // Dedicated flood correlated parameters
       const isSurge = i >= 18 && i <= 21;
       const rainfall_mm = +(isSurge ? (160 + Math.random() * 80) : (25 + Math.random() * 30)).toFixed(1);
       const soil_saturation = +(isSurge ? (82 + Math.random() * 12) : (40 + Math.random() * 20)).toFixed(1);
@@ -910,7 +894,6 @@
     ctx.lineWidth = 2.2;
     ctx.stroke();
 
-    // Plot anomaly pulses
     state.timeseriesData.forEach((p, i) => {
       if (p.anomaly) {
         const px = getX(i);
@@ -1064,6 +1047,7 @@
     try {
       const bounds = getCurrentViewportBounds();
       const params = new URLSearchParams({
+        hazard_mode: state.activeHazard || "wildfire",
         lon_min: bounds.lon_min.toFixed(4),
         lat_min: bounds.lat_min.toFixed(4),
         lon_max: bounds.lon_max.toFixed(4),
@@ -1087,24 +1071,25 @@
 
     alerts.forEach((alert) => {
       const isCrit = alert.severity === "CRITICAL";
-      const isFlood = alert.type.toLowerCase().includes("flood") || alert.type.toLowerCase().includes("inundation");
-      const badgeColor = isFlood ? "rgba(249, 115, 22, 0.20)" : "rgba(239, 68, 68, 0.20)";
-      const textColor = isFlood ? "#FB923C" : (isCrit ? "#F87171" : "#FBBF24");
+      const isFlood = (alert.hazard_category === "flood") || alert.type.toLowerCase().includes("flood") || alert.type.toLowerCase().includes("inundation");
+      const badgeColor = isFlood ? (isCrit ? "rgba(239, 68, 68, 0.25)" : "rgba(249, 115, 22, 0.20)") : (isCrit ? "rgba(239, 68, 68, 0.20)" : "rgba(245, 158, 11, 0.20)");
+      const textColor = isFlood ? (isCrit ? "#F87171" : "#FB923C") : (isCrit ? "#F87171" : "#FBBF24");
+      const icon = isFlood ? "fa-water" : "fa-fire";
 
       const card = document.createElement("div");
       card.className = "alert-card";
       card.innerHTML = `
         <div class="alert-card-top">
-          <span class="alert-title">${alert.title}</span>
+          <span class="alert-title"><i class="fa-solid ${icon}" style="margin-right: 5px; opacity: 0.85;"></i>${alert.title}</span>
           <span class="severity-pill" style="background:${badgeColor};color:${textColor};border-color:${textColor}40">${alert.severity}</span>
         </div>
         <div class="alert-meta-row">
           <span>${alert.type}</span>
-          <span style="color: ${isFlood ? '#FB923C' : 'var(--veg-bright)'}; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;">● ${alert.detected_at || 'LIVE'}</span>
+          <span style="color: ${isFlood ? '#38BDF8' : 'var(--veg-bright)'}; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;">● ${alert.detected_at || 'LIVE'}</span>
         </div>
         <div class="alert-meta-row" style="color: ${textColor}">
-          <span>Impact: ${alert.loss_hectares ? alert.loss_hectares.toLocaleString() : '--'} ha</span>
-          <span>Sensor: ${alert.sensor || 'Sentinel-1/2'}</span>
+          <span>${isFlood ? 'Inundated:' : 'Impact:'} ${alert.loss_hectares ? alert.loss_hectares.toLocaleString() : '--'} ha</span>
+          <span>Sensor: ${alert.sensor || (isFlood ? 'Sentinel-1 SAR' : 'Sentinel-2')}</span>
         </div>
       `;
 
@@ -1246,7 +1231,6 @@
   function plotSegmentationOnMap(result, isFlood) {
     if (!result.geojson || !result.bbox) return;
 
-    // Distinct theme colors: Inundation = Electric Deep Blue #0284C7, Wildfire = Flame Red #EF4444
     const themeColor = isFlood ? "#0284C7" : "#EF4444";
     const headerColor = isFlood ? "#38BDF8" : "#F87171";
 
@@ -1333,7 +1317,6 @@
 
   function setRegion(regionKey) {
     const presets = {
-      // Wildfire Regions
       amazon: { name: "Amazon Basin, Brazil", center: [-62.5, -4.5], zoom: 5.5, sensor: "Sentinel-2 MSI", hazard: state.activeHazard },
       california: { name: "Sierra Nevada, USA", center: [-119.5, 37.2], zoom: 6.2, sensor: "Sentinel-2 MSI", hazard: "wildfire" },
       congo: { name: "Congo Rainforest, DRC", center: [23.6, -0.5], zoom: 5.2, sensor: "Sentinel-2 MSI", hazard: "wildfire" },
@@ -1342,7 +1325,6 @@
       sahel: { name: "Sahel & Lake Chad, Africa", center: [14.5, 13.8], zoom: 5.0, sensor: "Sentinel-2 MSI", hazard: "wildfire" },
       siberia: { name: "Siberian Taiga, Russia", center: [129.5, 62.2], zoom: 4.8, sensor: "Sentinel-2 MSI", hazard: "wildfire" },
 
-      // Flash Flood Regions
       nepal: { name: "Nepal & Tibet Mountain Basin & River Valleys", center: [85.65, 27.22], zoom: 6.8, sensor: "Sentinel-1 SAR & S2", hazard: "flood" },
       india: { name: "India (Ganges & Brahmaputra Corridor)", center: [86.00, 26.15], zoom: 6.2, sensor: "Sentinel-1 SAR (10m)", hazard: "flood" },
       indo_gangetic: { name: "India (Ganges & Brahmaputra Corridor)", center: [86.00, 26.15], zoom: 6.2, sensor: "Sentinel-1 SAR (10m)", hazard: "flood" },

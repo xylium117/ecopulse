@@ -188,7 +188,6 @@ def mock_ndvi_timeseries(
         ndwi = max(-0.2, min(0.85, (ndvi * 0.75) - 0.05 + rng.uniform(-0.03, 0.03)))
         carbon_flux = max(0.2, (1.0 - ndvi) * 5.4 + rng.uniform(-0.2, 0.2))
 
-        # Monsoon rainfall & soil saturation modeling
         monsoon_pulse = math.sin(2 * math.pi * ((doy - 140) / 365.25)) if is_monsoon_zone else math.sin(2 * math.pi * (doy / 365.25))
         base_rain = 85.0 if is_monsoon_zone else 45.0
         rainfall_mm = max(2.0, base_rain + monsoon_pulse * 65.0 + rng.uniform(-12.0, 18.0))
@@ -212,7 +211,6 @@ def mock_ndvi_timeseries(
         series[idx]["ndvi"] = round(max(0.12, series[idx]["ndvi"] - rng.uniform(0.25, 0.40)), 4)
         series[idx]["ndwi"] = round(max(-0.25, series[idx]["ndwi"] - rng.uniform(0.30, 0.45)), 4)
         series[idx]["carbon_flux"] = round(series[idx]["carbon_flux"] + rng.uniform(3.5, 6.2), 2)
-        # Cloudburst / torrential flash flood spike
         series[idx]["rainfall_mm"] = round(series[idx]["rainfall_mm"] + rng.uniform(110.0, 185.0), 1)
         series[idx]["soil_saturation"] = round(min(99.4, series[idx]["soil_saturation"] + rng.uniform(28.0, 42.0)), 1)
         series[idx]["mndwi"] = round(min(0.88, series[idx]["mndwi"] + rng.uniform(0.40, 0.65)), 4)
@@ -260,7 +258,6 @@ def get_drought_risk(bbox: List[float]) -> Dict[str, Any]:
     center_lon = (bbox[0] + bbox[2]) / 2
     center_lat = (bbox[1] + bbox[3]) / 2
 
-    # Prevent drought risk anomalies in the middle of the ocean
     if not is_land_region(center_lat, center_lon):
         return {
             "vci_percentage": 100.0,
@@ -313,7 +310,6 @@ def get_flash_flood_risk(bbox: List[float]) -> Dict[str, Any]:
     center_lon = (bbox[0] + bbox[2]) / 2
     center_lat = (bbox[1] + bbox[3]) / 2
 
-    # Prevent flash flood susceptibility in the middle of the ocean
     if not is_land_region(center_lat, center_lon):
         return {
             "flash_flood_susceptibility_pct": 0.0,
@@ -337,7 +333,6 @@ def get_flash_flood_risk(bbox: List[float]) -> Dict[str, Any]:
     is_subcontinent = (8.0 <= center_lat <= 32.0) and (68.0 <= center_lon <= 96.0)
     is_mediterranean = (36.0 <= center_lat <= 44.0) and (-10.0 <= center_lon <= 5.0)
 
-    # Climate zone classification based on geographical coordinates
     is_arid_desert = (
         (15.0 <= center_lat <= 35.0 and -18.0 <= center_lon <= 60.0) or  # Sahara & Arabian Peninsula
         (-32.0 <= center_lat <= -18.0 and 115.0 <= center_lon <= 145.0) or  # Australian Outback
@@ -375,7 +370,6 @@ def get_flash_flood_risk(bbox: List[float]) -> Dict[str, Any]:
         deforestation_pct = rng.uniform(2.0, 12.0)
         monsoon_intensity = rng.uniform(1.0, 2.5)
     else:
-        # Standard temperate and mixed vegetative plains (Moderate)
         saturation = rng.uniform(32.0, 60.0)
         precip_anomaly = rng.uniform(15.0, 75.0)
         runoff_cn = rng.uniform(55.0, 78.0)
@@ -383,11 +377,8 @@ def get_flash_flood_risk(bbox: List[float]) -> Dict[str, Any]:
         deforestation_pct = rng.uniform(8.0, 28.0)
         monsoon_intensity = rng.uniform(3.0, 5.5)
 
-    # Calculate FFSI incorporating deforestation as a decisive multiplier
-    # Deforestation strips vegetative roots and soil water retention capacity
     raw_ffsi = (saturation * 0.35) + (max(0, precip_anomaly) / 260.0 * 30.0) + ((runoff_cn / 100.0) * 20.0) + ((deforestation_pct / 100.0) * 15.0)
 
-    # If trained flood model weights from train.csv are available, apply calibrated blend
     model_note = "Algorithmic Hydrological Formulations"
     global _FLOOD_MODEL
     if _FLOOD_MODEL is None:
@@ -396,13 +387,11 @@ def get_flash_flood_risk(bbox: List[float]) -> Dict[str, Any]:
     if _FLOOD_MODEL and "weights" in _FLOOD_MODEL:
         w = _FLOOD_MODEL["weights"]
         intercept = _FLOOD_MODEL.get("intercept", 0.0)
-        # Scale features to 0-10 scale as in train.csv
         defor_feat = (deforestation_pct / 100.0) * 10.0
         monsoon_feat = monsoon_intensity
         topo_feat = (twi / 18.0) * 10.0
         urban_feat = (runoff_cn / 100.0) * 10.0
 
-        # Vector prediction
         pred_prob = intercept + (w.get("Deforestation", 0.0056) * defor_feat) + \
                     (w.get("MonsoonIntensity", 0.0056) * monsoon_feat) + \
                     (w.get("TopographyDrainage", 0.0056) * topo_feat) + \
@@ -452,7 +441,10 @@ def get_flash_flood_risk(bbox: List[float]) -> Dict[str, Any]:
     }
 
 
-def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, Any]]:
+def get_planetary_alerts(
+    bbox: Optional[List[float]] = None,
+    hazard_mode: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     now = datetime.now(timezone.utc)
     epoch_sec = int(now.timestamp())
     rng = np.random.default_rng(seed=(epoch_sec // 60))
@@ -462,6 +454,7 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "id_prefix": "ALT-NEP",
             "title": "Nepal & Tibet Monsoon Flash Flood & Inundation Surge",
             "type": "Flash Flood Inundation",
+            "hazard_category": "flood",
             "region": "Nepal & Tibet Mountain Basin (Bagmati / Koshi)",
             "coordinates": [85.32, 27.71],
             "severity": "CRITICAL",
@@ -475,6 +468,7 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "id_prefix": "ALT-IND",
             "title": "India Monsoon Inundation (Ganges & Brahmaputra Corridor)",
             "type": "River Overflow & Flash Flood",
+            "hazard_category": "flood",
             "region": "India (Bihar & Assam Flood Plains)",
             "coordinates": [86.25, 26.15],
             "severity": "CRITICAL",
@@ -488,6 +482,7 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "id_prefix": "ALT-VAL",
             "title": "Valencia DANA Flash Flood & Ravine Surge",
             "type": "Flash Flood Inundation",
+            "hazard_category": "flood",
             "region": "Valencia & Rambla del Poyo, Spain",
             "coordinates": [-0.38, 39.47],
             "severity": "CRITICAL",
@@ -498,9 +493,52 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "description": "Extreme convective DANA system generated catastrophic flash flood wave across dry ravines into coastal residential infrastructure.",
         },
         {
+            "id_prefix": "ALT-BGD",
+            "title": "Bangladesh Padma & Jamuna Delta Overflow",
+            "type": "Deltaic Mega-Inundation",
+            "hazard_category": "flood",
+            "region": "Sylhet & Meghna Basin, Bangladesh",
+            "coordinates": [90.35, 23.65],
+            "severity": "HIGH",
+            "confidence": "96.2%",
+            "sensor": "Sentinel-1 SAR GRD",
+            "base_loss": 4120.0,
+            "base_flux": 120.0,
+            "description": "Monsoon river swell submerging low-lying agricultural polders with significant radar backscatter attenuation.",
+        },
+        {
+            "id_prefix": "ALT-RSB",
+            "title": "Rio Grande do Sul Catastrophic Basin Inundation",
+            "type": "Flash Flood Inundation",
+            "hazard_category": "flood",
+            "region": "Guaíba Lake Basin, Porto Alegre, Brazil",
+            "coordinates": [-51.22, -30.03],
+            "severity": "CRITICAL",
+            "confidence": "98.7%",
+            "sensor": "Sentinel-1 SAR + GPM IMERG",
+            "base_loss": 4890.0,
+            "base_flux": 115.0,
+            "description": "Historic basin overflow and dam compromise causing extensive urban and agricultural submergence across southern Brazil.",
+        },
+        {
+            "id_prefix": "ALT-PAK",
+            "title": "Pakistan Indus River Flash Flood Overflow",
+            "type": "River Overflow & Flash Flood",
+            "hazard_category": "flood",
+            "region": "Sindh & Balochistan Lowlands, Pakistan",
+            "coordinates": [68.36, 25.39],
+            "severity": "HIGH",
+            "confidence": "95.9%",
+            "sensor": "Sentinel-1 SAR GRD + MODIS",
+            "base_loss": 6200.0,
+            "base_flux": 180.0,
+            "description": "Glacial lake outburst and monsoon surge driving widespread river embankment breaching and standing water accumulation.",
+        },
+        {
             "id_prefix": "ALT-AMZ",
             "title": "Amazon Deforestation Frontier (BR-163 Arc)",
             "type": "Deforestation & Carbon Flux",
+            "hazard_category": "wildfire",
             "region": "Amazon Basin, Pará, Brazil",
             "coordinates": [-55.42, -6.88],
             "severity": "CRITICAL",
@@ -514,6 +552,7 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "id_prefix": "ALT-CAL",
             "title": "Sierra Nevada Fire Complex",
             "type": "Wildfire Thermal Anomaly",
+            "hazard_category": "wildfire",
             "region": "Sierra National Forest, CA, USA",
             "coordinates": [-119.34, 37.15],
             "severity": "CRITICAL",
@@ -524,22 +563,10 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "description": "Active thermal burn signature with steep delta-NBR drop. Spatio-temporal U-Net highlights dense chaparral burn scar expansion.",
         },
         {
-            "id_prefix": "ALT-BGD",
-            "title": "Bangladesh Padma & Jamuna Delta Overflow",
-            "type": "Deltaic Mega-Inundation",
-            "region": "Sylhet & Meghna Basin, Bangladesh",
-            "coordinates": [90.35, 23.65],
-            "severity": "HIGH",
-            "confidence": "96.2%",
-            "sensor": "Sentinel-1 SAR GRD",
-            "base_loss": 4120.0,
-            "base_flux": 120.0,
-            "description": "Monsoon river swell submerging low-lying agricultural polders with significant radar backscatter attenuation.",
-        },
-        {
             "id_prefix": "ALT-COG",
             "title": "Congo Cuvette Centrale Peatland Anomaly",
             "type": "Carbon Flux Anomaly",
+            "hazard_category": "wildfire",
             "region": "Congo Basin, Équateur, DRC",
             "coordinates": [18.92, 0.45],
             "severity": "HIGH",
@@ -553,6 +580,7 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "id_prefix": "ALT-BOR",
             "title": "Central Kalimantan Peat Forest Clearing",
             "type": "Deforestation & Drainage",
+            "hazard_category": "wildfire",
             "region": "Borneo, Indonesia",
             "coordinates": [113.82, -2.21],
             "severity": "HIGH",
@@ -564,10 +592,19 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
         },
     ]
 
-    alerts = []
-    time_offsets_minutes = [2, 5, 12, 19, 34, 52, 71, 95]
+    if hazard_mode == "flood":
+        selected_clusters = [c for c in base_clusters if c.get("hazard_category") == "flood"]
+        selected_clusters += [c for c in base_clusters if c.get("hazard_category") != "flood"]
+    elif hazard_mode == "wildfire":
+        selected_clusters = [c for c in base_clusters if c.get("hazard_category") == "wildfire"]
+        selected_clusters += [c for c in base_clusters if c.get("hazard_category") != "wildfire"]
+    else:
+        selected_clusters = base_clusters
 
-    for idx, item in enumerate(base_clusters):
+    alerts = []
+    time_offsets_minutes = [2, 5, 9, 14, 21, 34, 48, 65, 82, 98]
+
+    for idx, item in enumerate(selected_clusters):
         offset_min = time_offsets_minutes[idx % len(time_offsets_minutes)]
         alert_time = now - timedelta(minutes=offset_min)
         loss_drift = round(item["base_loss"] + float(rng.uniform(-15.0, 25.0)), 1)
@@ -580,6 +617,7 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
             "id": alert_id,
             "title": item["title"],
             "type": item["type"],
+            "hazard_category": item.get("hazard_category", "flood" if "flood" in item["type"].lower() else "wildfire"),
             "region": item["region"],
             "coordinates": item["coordinates"],
             "severity": item["severity"],
@@ -597,22 +635,42 @@ def get_planetary_alerts(bbox: Optional[List[float]] = None) -> List[Dict[str, A
         c_lon = (bbox[0] + bbox[2]) / 2.0
         c_lat = (bbox[1] + bbox[3]) / 2.0
         if is_land_region(c_lat, c_lon):
-            vp_alert = {
-                "id": f"ALT-LIVE-{int(abs(c_lon*100 + c_lat*10)) % 9000 + 1000}",
-                "title": f"Active AOI Telemetry Event [{c_lat:.2f}°, {c_lon:.2f}°]",
-                "type": "Real-Time Satellite Delta",
-                "region": f"Live Viewport [Lon {c_lon:.2f} · Lat {c_lat:.2f}]",
-                "coordinates": [round(c_lon, 4), round(c_lat, 4)],
-                "severity": "HIGH",
-                "confidence": "94.8%",
-                "sensor": "Sentinel-2 MSI Live Pass",
-                "detected_at": f"Just now ({now.strftime('%H:%M:%S UTC')})",
-                "timestamp_iso": now.isoformat(),
-                "loss_hectares": round(float(abs(c_lon * 5 + c_lat * 11) % 650 + 120), 1),
-                "co2_emissions_kt": round(float(abs(c_lon * 2 + c_lat * 6) % 240 + 45), 1),
-                "description": "Real-time spectral delta shift detected during recent orbital pass over active viewport coordinates.",
-                "live_active": True,
-            }
+            if hazard_mode == "flood":
+                vp_alert = {
+                    "id": f"ALT-FLD-{int(abs(c_lon*100 + c_lat*10)) % 9000 + 1000}",
+                    "title": f"Active Flash Flood Telemetry AOI [{c_lat:.2f}°, {c_lon:.2f}°]",
+                    "type": "Flash Flood Inundation Surge",
+                    "hazard_category": "flood",
+                    "region": f"Live Viewport [Lon {c_lon:.2f} · Lat {c_lat:.2f}]",
+                    "coordinates": [round(c_lon, 4), round(c_lat, 4)],
+                    "severity": "HIGH",
+                    "confidence": "96.4%",
+                    "sensor": "Sentinel-1 SAR GRD + MNDWI",
+                    "detected_at": f"Just now ({now.strftime('%H:%M:%S UTC')})",
+                    "timestamp_iso": now.isoformat(),
+                    "loss_hectares": round(float(abs(c_lon * 6 + c_lat * 12) % 850 + 180), 1),
+                    "co2_emissions_kt": round(float(abs(c_lon * 1.5 + c_lat * 4) % 90 + 20), 1),
+                    "description": "Active SAR backscatter attenuation and surface water expansion detected across current map viewport.",
+                    "live_active": True,
+                }
+            else:
+                vp_alert = {
+                    "id": f"ALT-LIVE-{int(abs(c_lon*100 + c_lat*10)) % 9000 + 1000}",
+                    "title": f"Active AOI Telemetry Event [{c_lat:.2f}°, {c_lon:.2f}°]",
+                    "type": "Real-Time Satellite Delta",
+                    "hazard_category": "wildfire",
+                    "region": f"Live Viewport [Lon {c_lon:.2f} · Lat {c_lat:.2f}]",
+                    "coordinates": [round(c_lon, 4), round(c_lat, 4)],
+                    "severity": "HIGH",
+                    "confidence": "94.8%",
+                    "sensor": "Sentinel-2 MSI Live Pass",
+                    "detected_at": f"Just now ({now.strftime('%H:%M:%S UTC')})",
+                    "timestamp_iso": now.isoformat(),
+                    "loss_hectares": round(float(abs(c_lon * 5 + c_lat * 11) % 650 + 120), 1),
+                    "co2_emissions_kt": round(float(abs(c_lon * 2 + c_lat * 6) % 240 + 45), 1),
+                    "description": "Real-time spectral delta shift detected during recent orbital pass over active viewport coordinates.",
+                    "live_active": True,
+                }
             alerts.insert(0, vp_alert)
 
     return alerts
@@ -628,43 +686,25 @@ def is_land_region(lat: float, lon: float) -> bool:
     if lat > 82.0 or lat < -58.0:
         return False
 
-    # Deep water body exclusion zones (Open oceans, seas, and gulfs)
     water_exclusions = [
-        # Central Pacific Ocean
         (-55.0, 60.0, -180.0, -125.0),
-        # Central & Tropical Atlantic Ocean
         (-55.0, 50.0, -50.0, -15.0),
-        # Gulf of Guinea / South Atlantic
         (-20.0, 4.0, -15.0, 8.0),
-        # Central Indian Ocean
         (-55.0, 8.0, 55.0, 92.0),
-        # Arabian Sea deep water
         (10.0, 20.0, 58.0, 68.0),
-        # Bay of Bengal central deep water
         (8.0, 18.0, 84.0, 90.5),
-        # Central Mediterranean Sea
         (33.5, 38.5, 13.5, 26.5),
-        # Gulf of Mexico deep water
         (22.5, 28.0, -94.5, -86.5),
-        # Caribbean Sea deep water
         (12.0, 17.5, -78.0, -66.0),
-        # Black Sea central water
         (42.5, 44.5, 31.0, 38.0),
-        # Caspian Sea open water
         (38.0, 46.5, 48.0, 53.0),
-        # Coral Sea / South Pacific deep water
         (-30.0, -12.0, 155.0, 175.0),
     ]
 
-    # Specific land exceptions that fall within broad exclusion boxes (e.g., Hawaii, Madagascar, Sri Lanka)
     land_exceptions = [
-        # Hawaii
         (18.5, 22.5, -161.0, -154.5),
-        # Madagascar
         (-26.0, -11.0, 43.0, 51.0),
-        # Sri Lanka
         (5.5, 10.0, 79.5, 82.0),
-        # Caribbean islands
         (17.5, 23.5, -85.0, -64.0),
     ]
 
@@ -676,29 +716,17 @@ def is_land_region(lat: float, lon: float) -> bool:
         if min_lat <= lat <= max_lat and min_lon <= lon <= max_lon:
             return False
 
-    # Terrestrial bounding envelopes
     land_boxes = [
-        # North America (US, Canada, Mexico)
         (14.0, 72.0, -168.0, -52.0),
-        # Central America
         (7.0, 18.0, -92.0, -77.0),
-        # South America
         (-56.0, 13.0, -82.0, -34.0),
-        # Europe & British Isles
         (35.0, 71.0, -10.0, 40.0),
-        # Africa
         (-35.0, 38.0, -18.0, 52.0),
-        # Asia & Middle East & Siberia
         (5.0, 78.0, 26.0, 180.0),
-        # Southeast Asia & Maritime Continent
         (-11.0, 8.0, 95.0, 142.0),
-        # Australia & New Zealand
         (-48.0, -10.0, 112.0, 179.0),
-        # Japan
         (24.0, 46.0, 122.0, 146.0),
-        # UK / Ireland
         (49.0, 61.0, -11.0, 2.0),
-        # Scandinavia
         (55.0, 71.0, 4.0, 32.0),
     ]
 
@@ -757,7 +785,6 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
         rgba[..., 3] = (burn_val * 220).astype(np.uint8)
 
     elif layer_type in ("flood_risk", "flood", "flash_flood", "ffsi"):
-        # Vibrant Amber-Orange & Coral Red gradient for Flash Flood Runoff Risk (distinct from blue inundation)
         flood_risk_val = np.clip(base * 0.45 + hotspot * 0.95, 0, 1)
         rgba[..., 0] = (249 * flood_risk_val).clip(0, 255).astype(np.uint8)
         rgba[..., 1] = (115 * flood_risk_val + (1 - flood_risk_val) * 40).clip(0, 255).astype(np.uint8)
@@ -765,7 +792,6 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
         rgba[..., 3] = (flood_risk_val * 220).astype(np.uint8)
 
     elif layer_type in ("rainfall", "precipitation", "rain_anomaly"):
-        # Electric Purple / Deep Indigo for Precipitation Anomaly (mm)
         rain_val = np.clip(base * 0.50 + hotspot * 0.85, 0, 1)
         rgba[..., 0] = (139 * rain_val + 30).clip(0, 255).astype(np.uint8)
         rgba[..., 1] = (92 * rain_val).clip(0, 255).astype(np.uint8)
@@ -773,7 +799,6 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
         rgba[..., 3] = (rain_val * 215).astype(np.uint8)
 
     elif layer_type in ("inundation", "sar_flood", "water_expansion"):
-        # Deep Luminous Electric Blue for actual Standing Flood Water Extent & Submergence
         inundation_val = (hotspot > 0.28).astype(np.float32) * hotspot
         rgba[..., 0] = (inundation_val * 2).astype(np.uint8)
         rgba[..., 1] = (inundation_val * 132).astype(np.uint8)
@@ -781,7 +806,6 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
         rgba[..., 3] = (inundation_val * 230).astype(np.uint8)
 
     elif layer_type in ("soil_saturation", "twi", "saturation"):
-        # Deep Marine Teal for Soil Moisture Saturation (%)
         sat_val = np.clip(base * 0.60 + hotspot * 0.60, 0, 1)
         rgba[..., 0] = (13 * sat_val).astype(np.uint8)
         rgba[..., 1] = (148 * sat_val + 20).clip(0, 255).astype(np.uint8)
@@ -789,7 +813,6 @@ def render_heatmap_tile(bounds, zoom: int, layer_type: str = "heatmap") -> bytes
         rgba[..., 3] = (sat_val * 190).astype(np.uint8)
 
     elif layer_type in ("mndwi", "water_index"):
-        # Pure Bright Aqua Cyan for Water Index (MNDWI)
         mndwi_field = (hotspot > 0.35).astype(np.float32) * hotspot
         rgba[..., 0] = (mndwi_field * 6).astype(np.uint8)
         rgba[..., 1] = (mndwi_field * 210).astype(np.uint8)

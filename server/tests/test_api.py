@@ -205,6 +205,30 @@ def test_alerts_endpoint_with_viewport():
     assert "Active AOI" in alerts[0]["title"] or "Live Viewport" in alerts[0]["region"]
 
 
+def test_alerts_endpoint_flood_mode():
+    response = client.get("/api/alerts?hazard_mode=flood")
+    assert response.status_code == 200
+    alerts = response.json()
+    assert len(alerts) >= 6
+    assert alerts[0]["hazard_category"] == "flood"
+    assert any("Flash Flood" in a["type"] or "Inundation" in a["type"] for a in alerts)
+
+
+def test_alerts_endpoint_flood_viewport():
+    params = {
+        "hazard_mode": "flood",
+        "lon_min": 84.0,
+        "lat_min": 26.0,
+        "lon_max": 88.0,
+        "lat_max": 29.0,
+    }
+    response = client.get("/api/alerts", params=params)
+    assert response.status_code == 200
+    alerts = response.json()
+    assert alerts[0]["hazard_category"] == "flood"
+    assert "Flash Flood" in alerts[0]["title"] or "Inundation" in alerts[0]["title"]
+
+
 @pytest.mark.parametrize("preset_name", ["california", "amazon", "borneo"])
 def test_wildfire_inference_presets(preset_name):
     response = client.post(f"/api/inference/wildfire?preset={preset_name}")
