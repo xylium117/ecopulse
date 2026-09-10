@@ -1,168 +1,228 @@
-# EcoPulse
+# EcoPulse 🌍⚡
 
-EcoPulse is an interactive planetary climate analytics engine and environmental monitoring platform. Monitor global deforestation, track multi-spectral vegetation indices, detect carbon flux anomalies, assess agricultural drought risk, and segment wildfire burn scars using spatio-temporal deep learning.
-
-The project combines a Python FastAPI telemetry engine, a Spatio-Temporal U-Net with ConvLSTM2D bottlenecks, Google Earth Engine multi-spectral ingestion, and a modern glassmorphic dashboard powered by Leaflet and Mapbox 3D Globe visualizations.
+> **Planetary Climate Analytics & Multi-Hazard Earth Observation Platform**  
+> Real-time monitoring of wildfire burn scars, flash flood inundation, agricultural drought risk, carbon flux anomalies, and planetary vegetation dynamics powered by multi-sensor satellite telemetry and spatio-temporal deep learning.
 
 ---
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)&nbsp;
-![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)&nbsp;
-![TensorFlow](https://img.shields.io/badge/TensorFlow-%23FF6F00.svg?style=for-the-badge&logo=TensorFlow&logoColor=white)&nbsp;
-![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=Leaflet&logoColor=white)&nbsp;
-![Mapbox](https://img.shields.io/badge/Mapbox-000000?style=for-the-badge&logo=mapbox&logoColor=white)&nbsp;
-[![License: MIT](https://img.shields.io/badge/LICENSE-MIT-green?style=for-the-badge)](https://github.com/xylium117/ecopulse/blob/main/LICENSE)
 
+![Python](https://img.shields.io/badge/Python-3.10%2B-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)&nbsp;
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)&nbsp;
+![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)&nbsp;
+![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white)&nbsp;
+![Mapbox](https://img.shields.io/badge/Mapbox_GL-000000?style=for-the-badge&logo=mapbox&logoColor=white)&nbsp;
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)&nbsp;
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-## What You Can Explore
+---
 
-- Multi-spectral NDVI, NDWI, and carbon flux time series analysis across global biomes
-- Real-time global deforestation, wildfire, and carbon spike alert feeds with anomaly scoring
-- Dual-engine map visualization: Open Satellite Engine (ESRI World Imagery + CartoDB Dark Matter, zero API keys required) and Mapbox 3D Globe with atmospheric shaders
-- Spatio-temporal U-Net deep learning segmentation for multi-spectral burn-scar and canopy loss detection
-- Interactive VCI (Vegetation Condition Index) agricultural drought simulator with real-time sensitivity controls
-- Dynamic XYZ multi-spectral raster tile streaming for NDVI, carbon flux, drought index, and burn severity layers
-- High-fidelity deterministic synthetic fallback mode for zero-configuration, out-of-the-box local operation
-- Multi-sensor ingestion support for Sentinel-2 MSI (10m) and Landsat 8/9 OLI (30m) surface reflectance products
-- Exportable planetary telemetry reports and regional environmental impact summaries
-- Glassmorphic command center interface with responsive telemetry counters, charts, and interactive layer compositing
+## 🌟 Overview
 
-## Requirements
+**EcoPulse** is an Earth Observation (EO) and climate risk intelligence system designed to process multi-spectral optical and synthetic aperture radar (SAR) satellite data in real time. It unifies bi-temporal computer vision models, planetary hydrology regressors, and an interactive GIS interface into a high-performance command center.
 
-- Python 3.10 or newer and `pip`
-- Modern web browser with WebGL support (for 3D globe and interactive map layers)
-- Docker & Docker Compose (optional, for containerized multi-service deployment)
-- Google Cloud / Earth Engine credentials (optional; fallback mode activates automatically if omitted)
-- Mapbox GL public token (optional; Leaflet Open Satellite engine is enabled by default)
+The platform provides dual operational modes:
+1. **🔥 Wildfire & Biomass Loss Engine**: Bi-temporal burn scar segmentation, active thermal hotspot tracking, canopy loss quantification, and $CO_2$ emission estimation using a Spatio-Temporal U-Net with ConvLSTM2D bottlenecks.
+2. **🌊 Flash Flood & Inundation Engine**: Multi-modal Sentinel-1 SAR backscatter drop detection, MNDWI water expansion analysis, and multivariate flood susceptibility modeling (FFSI) trained directly on empirical basin telemetry (`server/data/train.csv`).
 
-## Run the Interface
+---
 
-Serve the frontend directory with any static web server:
+## 🚀 Key Features
 
-```powershell
-cd frontend
-python -m http.server 8080
+- **Dual Visualization Engines**:
+  - **Open Satellite Engine**: Zero-API-key open GIS renderer pairing ESRI World Imagery with CartoDB Dark Matter base maps.
+  - **Mapbox 3D Globe**: Spherical planetary projection with atmospheric shaders and terrain relief.
+- **Deep Learning Inundation & Burn Segmentation**:
+  - Pre-calibrated regional disaster scenes: **Nepal & Tibet** (mountain cloudburst surge), **India** (Indo-Gangetic & Brahmaputra basin), **Valencia** (DANA flash flood), **Bangladesh** (delta river swell), **California** (Camp Fire corridor), **Amazon** (rainforest deforestation), and **Borneo** (peatland fires).
+  - **Live Viewport Scanning**: Runs AI segmentation across any bounding box centered on the user's active viewport with water-body masking to eliminate false positives in oceans and seas.
+- **Dynamic Multi-Tier AI Hazard Severity**:
+  - Evaluates hazard severity dynamically into `CRITICAL`, `HIGH`, `MEDIUM` / `MODERATE`, `LOW`, and `NONE` (open water / zero risk) with color-coded UI indicators and GeoJSON telemetry popups.
+- **Interactive Multi-Spectral & Radar Overlays**:
+  - Live XYZ raster tile streaming for NDVI (Vegetation Index), Carbon Flux Anomalies, Agricultural Drought (VCI), Burn Severity, Flash Flood Susceptibility (FFSI), and Inundation Extent.
+- **Hydrological Basin Machine Learning**:
+  - Multivariate ridge regressor trained on 12 critical watershed variables (Monsoon Intensity, Topography Drainage, River Management, Deforestation, Urbanization, Climate Change, Siltation, etc.).
+- **Mobile & Desktop Optimized Glassmorphic UI**:
+  - Responsive HUD with floating control drawers, collapsible telemetry panels, zoom lock, dynamic legends, and touch-friendly mobile landscape support.
+- **Zero-Config Fallback & Live Earth Engine Integration**:
+  - Out-of-the-box synthetic telemetry curves and procedural multi-spectral approximations when offline, seamlessly elevating to live Google Earth Engine (`COPERNICUS/S2_SR_HARMONIZED`, `COPERNICUS/S1_GRD`, `LANDSAT/LC08/C02/T1_L2`) when credentials are provided.
+
+---
+
+## 🏛️ Architecture
+
+```mermaid
+graph TD
+    Client["Client Web Interface (client/)<br>• Leaflet + ESRI Satellite<br>• Mapbox GL 3D Globe<br>• Glassmorphic Telemetry HUD"]
+    
+    API["FastAPI Server (server/app.py)<br>• REST API & Dynamic XYZ Tile Generator<br>• CORS & Viewport Filtering"]
+    
+    DL["Deep Learning Engine (server/model.py)<br>• Spatio-Temporal U-Net (ConvLSTM2D)<br>• Flood SAR & MNDWI Delta Gating"]
+    
+    Hydro["Hydrology Regressor (server/train.py)<br>• 12-Factor Ridge Model<br>• Trained on server/data/train.csv"]
+    
+    GEE["Data & Telemetry Engine (server/gee_utils.py)<br>• Google Earth Engine (Sentinel-1/2, Landsat)<br>• High-Fidelity Synthetic Fallback"]
+    
+    Client <-->|REST API / Tiles| API
+    API <--> DL
+    API <--> Hydro
+    API <--> GEE
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+### Directory Structure
 
-The frontend runs out of the box with the default **Open Satellite Engine** using high-resolution ESRI satellite imagery. When the backend is offline or unconfigured, the interface automatically leverages synthetic telemetry curves and client-side fallbacks.
-
-## Run the API
-
-From the repository root, install dependencies and start the FastAPI server:
-
-```powershell
-pip install -r backend/requirements.txt
-uvicorn backend.app:app --reload --port 8000
+```text
+ecopulse/
+├── client/                     # Web Frontend Client
+│   ├── css/style.css           # Glassmorphic Dark UI & Responsive Layouts
+│   ├── js/app.js               # Application Orchestrator, Maps, & Visuals
+│   ├── favicon.svg             # Vector Application Favicon
+│   ├── index.html              # Single Page Application Markup
+│   ├── Dockerfile              # Nginx Alpine Container Definition
+│   └── nginx.conf              # Reverse Proxy & Gzip Configuration
+├── server/                     # Python FastAPI & AI Backend
+│   ├── data/                   # Planetary Training Datasets
+│   │   └── train.csv           # Empirical Hydrological Observations
+│   ├── weights/                # Model Weights & Parametric Manifests
+│   │   ├── flood_risk_model.json
+│   │   ├── weights_manifest.json
+│   │   └── unet_burn.h5
+│   ├── tests/                  # Pytest Unit & Integration Test Suite
+│   │   └── test_api.py
+│   ├── app.py                  # FastAPI Application Routes & Tile Streamer
+│   ├── gee_utils.py            # Earth Engine Ingestion & Telemetry Core
+│   ├── model.py                # Spatio-Temporal U-Net & Flood Segmenter
+│   ├── train.py                # Model Training & Calibration Script
+│   ├── requirements.txt        # Python Dependencies
+│   └── Dockerfile              # Python 3.11 Slim Container Definition
+├── .github/workflows/          # CI/CD Workflows
+│   ├── ci.yml                  # Automated Pytest Suite
+│   └── deploy-gh-pages.yml     # Automated GitHub Pages Deployment
+├── docker-compose.yml          # Multi-Container Orchestration
+├── render.yaml                 # Render.com Cloud Deployment Blueprint
+├── start.bat                   # Instant Windows Launcher Script
+└── README.md                   # Repository Documentation
 ```
 
-The API listens on `http://127.0.0.1:8000`. Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
+---
 
-Available routes include:
+## ⚡ Quick Start
 
-| Method | Route | Purpose |
-| --- | --- | --- |
-| `GET` | `/health` | Check service health and readiness |
-| `GET` | `/api/config` | Inspect telemetry provider and credentials status |
-| `GET` | `/api/metrics` | Stream global and viewport-scoped headline metrics |
-| `GET` | `/api/ndvi` | Query multi-spectral NDVI/NDWI/Carbon-flux time series |
-| `GET` | `/api/drought` | Fetch agricultural drought vulnerability (VCI & soil moisture) |
-| `GET` | `/api/alerts` | Stream real-time global deforestation and wildfire alerts |
-| `POST` | `/api/inference/wildfire` | Run spatio-temporal U-Net burn-scar segmentation |
-| `GET` | `/api/tiles/{layer}/{z}/{x}/{y}.png` | Fetch dynamic XYZ raster tiles (`ndvi`, `carbon`, `drought`, `burn`) |
-| `GET` | `/api/export` | Generate and export summary telemetry reports |
+### 1. Windows One-Click Launcher
+Launch both the FastAPI backend and web client with automated instant dependency verification:
 
-## Build and Test
+```cmd
+start.bat
+```
 
-Run the full container stack with Docker Compose:
+This starts:
+- **Client Web UI**: [http://localhost:8080](http://localhost:8080)
+- **FastAPI Server**: [http://localhost:8000](http://localhost:8000)
+- **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-```powershell
+---
+
+### 2. Manual Local Setup
+
+#### Start the Server
+```bash
+# Install Python dependencies
+pip install -r server/requirements.txt
+
+# Start FastAPI development server
+uvicorn server.app:app --reload --port 8000
+```
+
+#### Start the Client
+```bash
+# Serve client static assets on port 8080
+python -m http.server 8080 --directory client
+```
+
+Navigate to `http://localhost:8080` in any modern web browser.
+
+---
+
+### 3. Docker Compose Stack
+
+Run the complete multi-container production stack with Nginx reverse proxy:
+
+```bash
 docker compose up --build -d
 ```
 
-- **Frontend Dashboard**: `http://localhost:8080` (reverse-proxies `/api/` to the backend)
+- **Web Dashboard**: `http://localhost:8080`
 - **Backend API**: `http://localhost:8000`
 
-Run the automated backend test suite:
-
-```powershell
-python -m pytest backend/tests -v
+To shut down:
+```bash
+docker compose down
 ```
-
-## Using the Planetary Command Center
-
-Open the dashboard to interact with real-time planetary observations:
-
-- **Satellite Engine Selector**: Toggle between the high-performance **Open Satellite Engine** (Leaflet + ESRI World Imagery) and the **Mapbox 3D Globe** with atmospheric shaders.
-- **Spectral Overlay Layers**: Composite NDVI vegetation density, estimated carbon flux, agricultural drought indices, and wildfire burn severity directly onto the map.
-- **Vegetation Time Series**: Select predefined biomes (e.g., Amazon Basin, Congo Rainforest, California Forests, Great Plains) or define custom geographic bounding boxes to inspect multi-year spectral curves.
-- **VCI Drought Simulator**: Adjust the Vegetation Condition Index threshold slider in real time to simulate drought vulnerability, soil moisture depletion, and crop stress.
-- **Deep Learning Wildfire Segmentation**: Upload paired pre- and post-fire multi-spectral granules or test sample scenes to segment active burn scars with the Spatio-Temporal U-Net.
-
-## Multi-Spectral Ingestion & Fallback Mode
-
-EcoPulse operates in two modes:
-
-1. **Live Production Mode**: Connects directly to Google Earth Engine (`COPERNICUS/S2_SR_HARMONIZED` at 10m and `LANDSAT/LC08/C02/T1_L2` at 30m) and Mapbox satellite services when API credentials are provided.
-2. **Deterministic Synthetic Fallback Mode**: When running without Earth Engine credentials or offline, the engine transparently computes high-fidelity mathematical approximations based on latitude, seasonal harmonic cycles, and biome baselines.
-
-To configure live credentials, create a `.env` file from the provided template:
-
-```powershell
-cp .env.example .env
-```
-
-## GitHub Pages
-
-The frontend dashboard is deployed automatically via [.github/workflows/deploy-gh-pages.yml](.github/workflows/deploy-gh-pages.yml).
-
-To deploy your own repository:
-
-```powershell
-git remote add origin https://github.com/YOUR_USERNAME/ecopulse.git
-git branch -M main
-git add .
-git commit -m "Deploy EcoPulse"
-git push -u origin main
-```
-
-In GitHub, open **Settings → Pages** and select **GitHub Actions** as the source.
-
-For the `xylium117/ecopulse` repository, the expected Pages URL is:
-
-```text
-https://xylium117.github.io/ecopulse/
-```
-
-GitHub Pages hosts the static frontend dashboard. When deployed statically without a backend instance, the application operates in demo mode using client-side telemetry simulation.
-
-## Development Notes
-
-- The spatio-temporal segmentation model accepts input tensors of shape `(Batch, Time=2, Height=256, Width=256, Channels=3)` representing pre- and post-disturbance scenes.
-- Dynamic XYZ raster tiles are computed using Mercator tile-to-lat/lon bounding box conversions with color mapping palettes.
-- The default Open Satellite engine requires zero external API keys and runs purely on open GIS endpoints.
-- Ensure all environment variables and secrets (such as GEE service account keys) remain excluded from version control.
-
-## Roadmap
-
-- [ ] Add real-time Sentinel-5P TROPOMI carbon monoxide (CO) and methane ($CH_4$) atmospheric trace gas layers
-- [ ] Implement browser-side ONNX Runtime Web inference for edge segmentation without server round-trips
-- [ ] Expand the deep learning pipeline to include multi-modal SAR (Sentinel-1 GRD) cloud-penetrating radar data
-- [ ] Add automated Webhook and GeoJSON subscription endpoints for deforestation and wildfire alert dispatching
-- [ ] Introduce custom polygon drawing tools for arbitrary multi-spectral area calculations
-
-See the [open issues](https://github.com/xylium117/ecopulse/issues) for a full list of proposed features (and known issues).
-
-## License
-
-This repository is licensed under the [MIT License](LICENSE). Feel free to use and modify the code as you see fit.
-
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch.
-3. Make focused changes and add tests where practical.
-4. Run `python -m pytest backend/tests` to verify test coverage.
-5. Open a pull request with a concise description of the change.
 
 ---
+
+## 📡 REST API Reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Service health status and readiness probe |
+| `GET` | `/api/config` | Inspect telemetry provider configuration and credentials |
+| `GET` | `/api/metrics` | Headline metrics (global or filtered by viewport `bbox`) |
+| `GET` | `/api/ndvi` | Time-series NDVI, NDWI, and carbon flux spectral curves |
+| `GET` | `/api/drought` | Agricultural drought vulnerability (VCI, soil moisture, rainfall deficit) |
+| `GET` | `/api/flood/risk` | Flash flood susceptibility (FFSI, soil saturation, runoff curve) |
+| `GET` | `/api/alerts` | Real-time global flood, deforestation, and wildfire alert stream |
+| `POST` | `/api/inference/wildfire` | Bi-temporal Spatio-Temporal U-Net burn scar segmentation |
+| `POST` | `/api/inference/flood` | Multi-modal SAR & MNDWI flood inundation segmentation |
+| `GET` | `/api/tiles/{layer}/{z}/{x}/{y}.png` | Dynamic XYZ tiles (`ndvi`, `carbon`, `drought`, `burn`, `flood_risk`, `inundation`) |
+| `GET` | `/api/export` | Download structured multi-hazard planetary telemetry reports |
+
+---
+
+## 🧠 Machine Learning & Hydrology
+
+### Spatio-Temporal U-Net Architecture
+- **Input Tensor**: `(Batch, Time=2, Height=256, Width=256, Channels=3)` (Pre- and post-disturbance multi-spectral frames)
+- **TimeDistributed Encoder**: 3-level feature pyramid extracting multi-scale spectral features
+- **ConvLSTM2D Temporal Bottleneck**: Captures dynamic temporal transitions and spectral differencing across observation dates
+- **Decoder with Skip Connections**: Reconstructs fine-grained spatial damage masks at 10m ground resolution
+
+### Multivariate Hydrological Model
+Trained on `server/data/train.csv` to compute basin vulnerability from 12 empirical variables:
+$$\text{FFSI} = \mathbf{w}^T \mathbf{x} + b$$
+Features include **Monsoon Intensity**, **Topography Drainage**, **River Management**, **Deforestation Index**, **Urbanization**, and **Drainage Infrastructure**.
+
+To retrain the model weights:
+```bash
+python -m server.train
+```
+
+---
+
+## 🧪 Automated Testing
+
+Run the automated pytest test suite covering all endpoints, model inferences, tile generation, and ocean exclusion filters:
+
+```bash
+python -m pytest server/tests -v
+```
+
+```text
+======================= 37 passed in 3.88s =======================
+```
+
+---
+
+## ☁️ Cloud Deployment
+
+### GitHub Pages (Static Client)
+The client web application is automatically built and deployed to GitHub Pages via [.github/workflows/deploy-gh-pages.yml](.github/workflows/deploy-gh-pages.yml) upon pushes to `main`.
+- When deployed statically, the client runs in standalone demo mode with client-side telemetry approximations.
+
+### Render / Cloud Hosting (API Server)
+A production-ready [render.yaml](render.yaml) is included for one-click deployment on Render:
+- **Build Command**: `pip install -r server/requirements.txt`
+- **Start Command**: `uvicorn server.app:app --host 0.0.0.0 --port $PORT`
+
+---
+
+## 📄 License
+
+This project is open-source software licensed under the [MIT License](LICENSE).

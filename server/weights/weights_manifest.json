@@ -1,0 +1,13 @@
+{
+  "architecture": "Spatio-Temporal ConvLSTM2D U-Net",
+  "input_shape": [
+    2,
+    256,
+    256,
+    3
+  ],
+  "layers": 34,
+  "parameters": 14280512,
+  "flood_model": "flood_risk_model.json",
+  "status": "Production-ready weights export script configured."
+}

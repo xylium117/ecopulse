@@ -1,11 +1,11 @@
 version: "3.9"
 
 services:
-  backend:
+  server:
     build:
       context: .
-      dockerfile: backend/Dockerfile
-    container_name: ecopulse-backend
+      dockerfile: server/Dockerfile
+    container_name: ecopulse-server
     ports:
       - "8000:8000"
     environment:
@@ -17,20 +17,20 @@ services:
       # Mapbox token (optional - Leaflet open satellite renderer works without it)
       MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
       # Path to trained U-Net weights
-      MODEL_WEIGHTS_PATH: /app/backend/weights/unet_burn.h5
+      MODEL_WEIGHTS_PATH: /app/server/weights/unet_burn.h5
       CORS_ORIGINS: "*"
     volumes:
-      - ./backend/weights:/app/backend/weights:ro
+      - ./server/weights:/app/server/weights:ro
       - ./secrets/gee_credentials.json:/run/secrets/gee_credentials.json:ro
     restart: unless-stopped
 
-  frontend:
+  client:
     build:
       context: .
-      dockerfile: frontend/Dockerfile
-    container_name: ecopulse-frontend
+      dockerfile: client/Dockerfile
+    container_name: ecopulse-client
     ports:
       - "8080:80"
     depends_on:
-      - backend
+      - server
     restart: unless-stopped

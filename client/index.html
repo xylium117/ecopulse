@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EcoPulse — Planetary Climate & Multi-Hazard Intelligence Engine</title>
+  <meta name="description"
+    content="Planetary climate intelligence engine with wildfire damage evaluation, flash flood risk detection, ongoing inundation mapping, and spatio-temporal deep learning segmentation over Sentinel-1 SAR and Sentinel-2 imagery.">
+  <meta name="keywords"
+    content="EcoPulse, climate analytics, Sentinel-2, Sentinel-1 SAR, Landsat, Google Earth Engine, NDVI, MNDWI, wildfire segmentation, flash flood risk, Nepal flood, Valencia DANA, deep learning, U-Net, remote sensing, GIS">
+  <meta name="author" content="EcoPulse Planetary Intelligence">
+  <meta name="theme-color" content="#020617">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.svg">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://xylium117.github.io/ecopulse/">
+  <meta property="og:site_name" content="EcoPulse">
+  <meta property="og:title" content="EcoPulse — Planetary Climate & Multi-Hazard Intelligence Engine">
+  <meta property="og:description"
+    content="Planetary climate analytics engine with wildfire burn scar evaluation, flash flood risk anomaly detection, and spatio-temporal deep learning inundation segmentation.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/xylium117/ecopulse/main/frontend/favicon.svg">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://xylium117.github.io/ecopulse/">
+  <meta name="twitter:title" content="EcoPulse — Planetary Multi-Hazard Climate Analytics Engine">
+  <meta name="twitter:description"
+    content="Wildfire burn scar segmentation, flash flood susceptibility detection, and real-time planetary inundation mapping.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/xylium117/ecopulse/main/frontend/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <div id="app">
+    <aside id="sidebar" class="custom-scroll">
+      <button id="sidebar-toggle-tab" class="sidebar-toggle-tab" title="Toggle Telemetry Panel" aria-label="Toggle Panel">
+        <i class="fa-solid fa-chevron-left" id="sidebar-toggle-icon"></i>
+      </button>
+      <div>
+        <div class="header-top">
+          <div class="brand">
+            <span class="pulse-indicator"></span>
+            <span>EcoPulse</span>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-icon" id="btn-export" title="Export Planetary Telemetry Report" aria-label="Export Report">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <button class="btn-icon" id="btn-settings" title="API Credentials & Settings" aria-label="Settings">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="brand-meta">
+          <span class="brand-sub">Planetary Climate &amp; Hazard Intelligence</span>
+        </div>
+      </div>
+
+      <!-- Hazard Mode Switcher -->
+      <div class="hazard-switcher-wrap">
+        <div class="hazard-switcher">
+          <button class="hazard-tab active" id="tab-hazard-wildfire" data-hazard="wildfire">
+            <span class="hazard-icon"><i class="fa-solid fa-fire-flame-curved"></i></span>
+            <span>Wildfire &amp; Biomass</span>
+          </button>
+          <button class="hazard-tab" id="tab-hazard-flood" data-hazard="flood">
+            <span class="hazard-icon"><i class="fa-solid fa-water"></i></span>
+            <span>Flash Flood &amp; Rain</span>
+            <span class="hazard-live-dot" title="Active Flood Telemetry"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Telemetry Metrics Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="metrics-panel-title">Telemetry Metrics (Wildfire)</span>
+          <span class="panel-badge" id="telemetry-live-badge"
+            style="background: rgba(16, 185, 129, 0.15); color: var(--veg-bright); border-color: rgba(16, 185, 129, 0.35);">
+            <span
+              style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--veg-bright); animation: pulse-dot 1.5s infinite; margin-right: 4px;"></span>
+            LIVE
+          </span>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label" id="metric-primary-label">Regional Carbon Flux</span>
+            <span class="metric-value" id="metric-carbon" style="color: var(--solar-bright);">+3.4 t/ha</span>
+            <span class="metric-sub" id="metric-carbon-sub">Annual Biomass Balance</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Stream Latency</span>
+            <span class="metric-value" id="metric-tile-speed">&lt; 28ms</span>
+            <span class="metric-sub" id="metric-stream-sub">Real-Time XYZ Tiles</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Sensors Ingested</span>
+            <span class="metric-value" id="metric-sensors-label" style="font-size: 13px; color: var(--spectral-bright);">S2 &amp; Landsat</span>
+            <span class="metric-sub">10m / 30m Multi-Spectral</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Active Anomalies</span>
+            <span class="metric-value" id="metric-anomalies" style="color: var(--flame-bright);">28 Alerts</span>
+            <span class="metric-sub" id="metric-anomalies-sub">Planetary Flood &amp; Burn</span>
+          </div>
+        </div>
+        <div
+          style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-faint); margin-top: 6px; text-align: right;"
+          id="metric-clock">
+          SYNC: --:--:-- UTC
+        </div>
+      </div>
+
+      <!-- Dedicated Multi-Spectral & SAR Raster Layers -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="layers-panel-title">Multi-Spectral Raster Layers</span>
+        </div>
+        
+        <!-- Wildfire Mode Raster Layer Pills -->
+        <div class="layer-pills" id="layer-pills-wildfire">
+          <button class="layer-btn active" data-layer="ndvi">
+            <span class="dot" style="background: var(--veg-bright);"></span>
+            <span>NDVI Vegetation</span>
+          </button>
+          <button class="layer-btn" data-layer="carbon">
+            <span class="dot" style="background: var(--solar-bright);"></span>
+            <span>Carbon Flux</span>
+          </button>
+          <button class="layer-btn" data-layer="drought">
+            <span class="dot" style="background: var(--spectral-bright);"></span>
+            <span>Drought VCI</span>
+          </button>
+          <button class="layer-btn" data-layer="burn">
+            <span class="dot" style="background: #ef4444;"></span>
+            <span>Burn Scars</span>
+          </button>
+        </div>
+
+        <!-- Flash Flood Mode Raster Layer Pills (Separated & Correlated) -->
+        <div class="layer-pills" id="layer-pills-flood" style="display: none;">
+          <button class="layer-btn active" data-layer="flood_risk">
+            <span class="dot" style="background: #F97316;"></span>
+            <span>Flash Flood Risk (FFSI)</span>
+          </button>
+          <button class="layer-btn" data-layer="rainfall">
+            <span class="dot" style="background: #8B5CF6;"></span>
+            <span>Rainfall Anomaly (mm)</span>
+          </button>
+          <button class="layer-btn" data-layer="inundation">
+            <span class="dot" style="background: #0284C7;"></span>
+            <span>Inundation Extent (SAR)</span>
+          </button>
+          <button class="layer-btn" data-layer="soil_saturation">
+            <span class="dot" style="background: #0D9488;"></span>
+            <span>Soil Saturation / TWI</span>
+          </button>
+          <button class="layer-btn" data-layer="mndwi">
+            <span class="dot" style="background: #06B6D4;"></span>
+            <span>MNDWI Water Index</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Time-Series Chart with Mode-Specific Tabs -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="chart-panel-title">Multi-Spectral Indices</span>
+          
+          <!-- Wildfire Chart Tabs -->
+          <div class="chart-tabs" id="chart-tabs-wildfire">
+            <button class="chart-tab active" data-metric="ndvi">NDVI</button>
+            <button class="chart-tab" data-metric="ndwi">NDWI</button>
+            <button class="chart-tab" data-metric="carbon_flux">CO₂ FLUX</button>
+          </div>
+
+          <!-- Flash Flood Chart Tabs -->
+          <div class="chart-tabs" id="chart-tabs-flood" style="display: none;">
+            <button class="chart-tab active" data-metric="rainfall_mm" style="color: #C4B5FD;">RAINFALL</button>
+            <button class="chart-tab" data-metric="soil_saturation" style="color: #5EEAD4;">SATURATION</button>
+            <button class="chart-tab" data-metric="mndwi" style="color: #67E8F9;">MNDWI</button>
+            <button class="chart-tab" data-metric="flood_risk_ffsi" style="color: #FDBA74;">FFSI RISK</button>
+          </div>
+        </div>
+        <div class="chart-meta">
+          <span id="chart-start">2025-01-01</span>
+          <span id="chart-status">Canopy baseline nominal</span>
+          <span id="chart-end">2026-01-01</span>
+        </div>
+        <div id="ndvi-chart-wrap">
+          <canvas id="ndvi-chart-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Drought Risk Panel (Wildfire Mode) -->
+      <div class="panel" id="panel-drought-section">
+        <div class="panel-header">
+          <span class="panel-title">Agricultural Drought Index (VCI)</span>
+          <span id="drought-score" class="panel-badge" style="color: var(--veg-bright);">VCI 68.4%</span>
+        </div>
+        <div class="drought-box">
+          <div class="drought-bar-bg">
+            <div id="drought-bar" class="drought-bar-fill" style="width: 68%;"></div>
+          </div>
+          <div class="drought-stats" style="margin-top: 6px;">
+            <span id="drought-class" style="color: #fff; font-weight: 500;">Favorable / Normal</span>
+            <span style="color: var(--ink-faint);">0% Drought — 100% Optimal</span>
+          </div>
+
+          <div class="vci-slider-wrap"
+            style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+              <label for="vci-slider"
+                style="font-size: 10px; color: var(--ink-muted); text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">VCI
+                Alert Threshold:</label>
+              <span id="vci-slider-val" class="mono"
+                style="font-size: 11px; color: var(--solar-bright); font-weight: 600;">35% (Moderate)</span>
+            </div>
+            <input type="range" id="vci-slider" min="15" max="65" value="35" step="1" class="custom-range-slider"
+              style="width: 100%; cursor: pointer;">
+            <div
+              style="display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-faint); margin-top: 3px; font-family: 'IBM Plex Mono', monospace;">
+              <span>15% (Extreme)</span>
+              <span>35% (Nominal)</span>
+              <span>65% (Watch)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flash Flood Risk & Soil Saturation Panel (Flood Mode) -->
+      <div class="panel" id="panel-flood-section" style="display: none;">
+        <div class="panel-header">
+          <span class="panel-title">Flash Flood Risk &amp; Saturation (FFSI)</span>
+          <span id="flood-risk-score" class="panel-badge" style="color: #FDBA74; background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.40);">FFSI 84.2%</span>
+        </div>
+        <div class="drought-box">
+          <div class="drought-bar-bg">
+            <div id="flood-saturation-bar" class="drought-bar-fill" style="width: 84%; background: linear-gradient(90deg, #F97316 0%, #EF4444 100%);"></div>
+          </div>
+          <div class="drought-stats" style="margin-top: 6px;">
+            <span id="flood-risk-class" style="color: #F87171; font-weight: 600;">Flash Flood Emergency</span>
+            <span style="color: var(--ink-faint);">0% Dry — 100% Saturated</span>
+          </div>
+
+          <div class="flood-stat-grid">
+            <div class="flood-stat-cell">
+              <span class="flood-stat-label">Soil Saturation</span>
+              <span class="flood-stat-val" id="flood-stat-saturation" style="color: #5EEAD4;">89.4%</span>
+            </div>
+            <div class="flood-stat-cell">
+              <span class="flood-stat-label">Precip Anomaly</span>
+              <span class="flood-stat-val" id="flood-stat-precip" style="color: #C4B5FD;">+184.2 mm</span>
+            </div>
+            <div class="flood-stat-cell">
+              <span class="flood-stat-label">Deforestation Loss</span>
+              <span class="flood-stat-val" id="flood-stat-deforestation" style="color: #F87171;">42.8%</span>
+            </div>
+            <div class="flood-stat-cell">
+              <span class="flood-stat-label">Runoff Factor (CN)</span>
+              <span class="flood-stat-val" id="flood-stat-cn" style="color: #FBBF24;">91.5 (High)</span>
+            </div>
+            <div class="flood-stat-cell">
+              <span class="flood-stat-label">Topographic TWI</span>
+              <span class="flood-stat-val" id="flood-stat-twi" style="color: #67E8F9;">14.8 TWI</span>
+            </div>
+          </div>
+
+          <div class="vci-slider-wrap"
+            style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+              <label for="flood-slider"
+                style="font-size: 10px; color: var(--ink-muted); text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">Runoff
+                Risk Threshold:</label>
+              <span id="flood-slider-val" class="mono"
+                style="font-size: 11px; color: #FB923C; font-weight: 600;">60% (Warning)</span>
+            </div>
+            <input type="range" id="flood-slider" min="20" max="85" value="60" step="1" class="custom-range-slider"
+              style="width: 100%; cursor: pointer;">
+            <div
+              style="display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-faint); margin-top: 3px; font-family: 'IBM Plex Mono', monospace;">
+              <span>20% (Watch)</span>
+              <span>60% (Warning)</span>
+              <span>85% (Emergency)</span>
+            </div>
+          </div>
+
+          <div id="flood-action-text" class="mono" style="font-size: 10px; color: #94A3B8; margin-top: 8px; line-height: 1.4;">
+            Active torrential runoff detected: low-lying river corridors and bridge crossings at immediate inundation risk.
+          </div>
+        </div>
+      </div>
+
+      <!-- Planetary Multi-Hazard Alert Stream -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Multi-Hazard Alert Stream</span>
+          <span class="panel-badge"
+            style="background: rgba(239, 68, 68, 0.15); color: var(--flame-bright); border-color: rgba(239, 68, 68, 0.35);">REAL-TIME</span>
+        </div>
+        <div id="alert-feed-list" class="alert-feed-list custom-scroll">
+        </div>
+      </div>
+
+      <!-- Deep Learning AI Studio -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="studio-panel-title">Deep Learning Wildfire Segmentation</span>
+          <button id="btn-explain-ai" class="panel-badge-btn"
+            title="Click to view full architecture & mathematical explanation">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span>HOW AI WORKS</span>
+          </button>
+        </div>
+        <div class="studio-box">
+          <label
+            style="font-size: 10px; color: var(--ink-muted); text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; margin-bottom: 2px; display: block;">Incident
+            Preset / Scan Target:</label>
+          <select id="studio-preset" class="select-input" style="font-size: 11px;">
+            <option value="california" selected>Preset: Sierra Nevada Fire Scar (California)</option>
+            <option value="amazon">Preset: Amazon Clear-Cut Logging Arc</option>
+            <option value="borneo">Preset: Borneo Peatland Fire &amp; Drainage</option>
+            <option value="viewport">⚡ Scan Current Map Viewport (Global Model)</option>
+          </select>
+
+          <button id="btn-run-inference" class="btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+            <span id="btn-inference-label">Run Spatio-Temporal Segmentation</span>
+          </button>
+
+          <div class="studio-preview-grid">
+            <div class="preview-thumb">
+              <img id="thumb-pre" alt="Pre-Event Multi-Spectral Observation">
+              <span class="thumb-tag">T-0 PRE</span>
+            </div>
+            <div class="preview-thumb">
+              <img id="thumb-post" alt="Post-Event Multi-Spectral Observation">
+              <span class="thumb-tag">T-1 POST</span>
+            </div>
+            <div class="preview-thumb">
+              <img id="thumb-overlay" alt="AI Damage Mask Overlay">
+              <span class="thumb-tag" id="thumb-tag-overlay" style="background: rgba(239, 68, 68, 0.85);">AI MASK</span>
+            </div>
+          </div>
+
+          <div class="studio-stats">
+            <div class="studio-stat-row">
+              <span style="color: var(--ink-muted);" id="stat-primary-label">Affected Canopy:</span>
+              <span id="stat-burned-ha" class="val">842.0 ha (18.4%)</span>
+            </div>
+            <div class="studio-stat-row">
+              <span style="color: var(--ink-muted);" id="stat-secondary-label">CO₂ Flux Est:</span>
+              <span id="stat-co2" class="val" style="color: var(--flame-bright);">+202.1 kt CO₂</span>
+            </div>
+            <div class="studio-stat-row">
+              <span style="color: var(--ink-muted);">AI Hazard Severity:</span>
+              <span id="stat-severity-badge" class="val" style="color: #FB923C; font-weight: 700;">CALCULATING...</span>
+            </div>
+            <div class="studio-stat-row">
+              <span style="color: var(--ink-muted);">Model Metrics:</span>
+              <span id="stat-latency" class="val" style="color: var(--spectral-bright);">28.4ms · 10m Ground Res</span>
+            </div>
+          </div>
+
+          <div id="studio-status" class="mono" style="font-size: 10px; color: var(--ink-muted);">Global Spatio-Temporal
+            U-Net ready.</div>
+        </div>
+      </div>
+
+      <footer class="sidebar-foot">
+        <div>ECOPULSE MULTI-HAZARD INTELLIGENCE · V1.2</div>
+        <div class="tech-pills">
+          <span class="tech-pill">Python</span>
+          <span class="tech-pill">TensorFlow</span>
+          <span class="tech-pill">Sentinel-1 SAR</span>
+          <span class="tech-pill">Sentinel-2 MSI</span>
+          <span class="tech-pill">Leaflet / Mapbox</span>
+        </div>
+      </footer>
+    </aside>
+
+    <main id="map-wrap">
+      <div id="leaflet-map"></div>
+
+      <div id="map" style="display: none;"></div>
+
+      <div id="map-hud">
+        <div id="hud-region">AMAZON BASIN, BRAZIL</div>
+        <div id="hud-coords">LON -62.50 · LAT -4.50 · ZOOM 5.5</div>
+        <div id="hud-sensor">SENSOR: SENTINEL-2 MSI (10M)</div>
+      </div>
+
+      <div id="map-engine-bar">
+        <button class="engine-btn active" id="engine-leaflet-btn" data-engine="leaflet" title="Open Satellite Engine">
+          <span
+            style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--veg-bright);"></span>
+          <span>Open Satellite</span>
+        </button>
+        <button class="engine-btn" id="engine-mapbox-btn" data-engine="mapbox" title="Mapbox 3D Globe">
+          <span>Mapbox 3D Globe</span>
+        </button>
+      </div>
+
+      <!-- Dedicated Map Tools & Zoom Control Panel -->
+      <div id="map-tools-panel" class="map-tools-panel" aria-label="Map Control Toolbar">
+        <div class="map-tool-group">
+          <button class="map-tool-btn" id="btn-zoom-in" title="Zoom In (+)" aria-label="Zoom In">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <div class="map-tool-divider"></div>
+          <button class="map-tool-btn" id="btn-zoom-out" title="Zoom Out (-)" aria-label="Zoom Out">
+            <i class="fa-solid fa-minus"></i>
+          </button>
+        </div>
+
+        <div class="map-tool-group">
+          <button class="map-tool-btn" id="btn-toggle-dashboard" title="Show / Hide Telemetry Dashboard" aria-label="Toggle Telemetry Dashboard">
+            <i class="fa-solid fa-chart-line" id="icon-toggle-dashboard"></i>
+          </button>
+          <button class="map-tool-btn" id="btn-lock-zoom" title="Lock / Unlock Zoom Level" aria-label="Toggle Zoom Lock">
+            <i class="fa-solid fa-lock-open" id="icon-lock-zoom"></i>
+          </button>
+          <button class="map-tool-btn" id="btn-recenter" title="Recenter on Active AOI" aria-label="Recenter Map">
+            <i class="fa-solid fa-location-crosshairs"></i>
+          </button>
+          <button class="map-tool-btn" id="btn-scan-viewport" title="Scan Current Viewport with AI" aria-label="AI Viewport Scan">
+            <i class="fa-solid fa-satellite-dish"></i>
+          </button>
+          <button class="map-tool-btn" id="btn-fullscreen" title="Toggle Fullscreen Map View" aria-label="Toggle Fullscreen">
+            <i class="fa-solid fa-expand" id="icon-fullscreen"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Separated Quick Regions Bar (Wildfire Mode) -->
+      <div id="quick-regions-wildfire" class="quick-regions-bar">
+        <button class="quick-region-btn active" data-region="amazon">Amazon</button>
+        <button class="quick-region-btn" data-region="california">Sierra Nevada</button>
+        <button class="quick-region-btn" data-region="congo">Congo</button>
+        <button class="quick-region-btn" data-region="borneo">Borneo</button>
+        <button class="quick-region-btn" data-region="pantanal">Pantanal</button>
+        <button class="quick-region-btn" data-region="sahel">Sahel</button>
+        <button class="quick-region-btn" data-region="siberia">Siberia</button>
+      </div>
+
+      <!-- Separated Quick Regions Bar (Flash Flood Mode) -->
+      <div id="quick-regions-flood" class="quick-regions-bar" style="display: none;">
+        <button class="quick-region-btn active" data-region="nepal">Nepal &amp; Tibet</button>
+        <button class="quick-region-btn" data-region="india">India</button>
+        <button class="quick-region-btn" data-region="valencia">Valencia DANA</button>
+        <button class="quick-region-btn" data-region="bangladesh">Bangladesh</button>
+        <button class="quick-region-btn" data-region="amazon">Amazon Flooded Basin</button>
+        <button class="quick-region-btn" data-region="libya">Libya Derna</button>
+      </div>
+
+      <!-- Dynamic Legend -->
+      <div id="legend">
+        <!-- Wildfire Swatches -->
+        <div id="legend-items-wildfire">
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #10b981;"></span>
+            <span>Healthy Canopy (High NDVI)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #f59e0b;"></span>
+            <span>Stressed Canopy / Carbon Flux</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #06b6d4;"></span>
+            <span>Agricultural Drought (VCI)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #ef4444;"></span>
+            <span>Wildfire Burn Scar ($\Delta\text{NBR}$)</span>
+          </div>
+        </div>
+
+        <!-- Flash Flood Swatches (Clearly Differentiated Colors) -->
+        <div id="legend-items-flood" style="display: none;">
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #F97316;"></span>
+            <span>Flash Flood Risk (FFSI / Amber Surge)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #8B5CF6;"></span>
+            <span>Rainfall Anomaly (mm / Cloudburst)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #0284C7;"></span>
+            <span>Inundation Extent (Deep Blue SAR)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #0D9488;"></span>
+            <span>Soil Saturation &amp; TWI (%)</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal-settings" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">API Credentials &amp; Engine Status</h3>
+        <button class="btn-icon" id="btn-close-modal" aria-label="Close Modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="input-mapbox-token">Mapbox GL Public Token (Optional)</label>
+          <input type="text" id="input-mapbox-token" class="form-input"
+            placeholder="pk.eyJ1Ijoi... (Optional - Leave blank to use Open Satellite)">
+          <span style="font-size: 10px; color: var(--ink-faint); margin-top: 2px;">
+            EcoPulse includes the <strong>Open Satellite Engine (ESRI World Imagery)</strong> out of the box with zero
+            API keys required. Mapbox is optional.
+          </span>
+        </div>
+
+        <div
+          style="background: var(--surface-panel); padding: 12px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--ink-muted);">Map Renderer:</span>
+            <span id="status-map-engine" style="color: var(--veg-bright);">Open Satellite Engine (Active)</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--ink-muted);">Earth Engine Backend:</span>
+            <span id="status-gee" style="color: var(--veg-bright);">Active Telemetry Pipeline</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--ink-muted);">Wildfire AI Engine:</span>
+            <span id="status-model" style="color: var(--veg-bright);">Spatio-Temporal U-Net</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--ink-muted);">Flood &amp; Radar AI:</span>
+            <span id="status-flood-model" style="color: #38bdf8;">SAR &amp; MNDWI Dual Neural Segmenter</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--ink-muted);">Multi-Modal Sensors:</span>
+            <span style="color: #fff;">Sentinel-1 SAR, Sentinel-2 &amp; Landsat-9</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-save-settings">Save Credentials</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-ai-explainer" class="modal-backdrop" role="dialog" aria-modal="true"
+    aria-labelledby="explainer-modal-title">
+    <div class="modal-dialog modal-dialog-lg">
+      <div class="modal-header">
+        <div>
+          <h3 id="explainer-modal-title" class="modal-title">How EcoPulse AI Works</h3>
+          <span style="font-size: 11px; color: var(--veg-bright); font-family: 'IBM Plex Mono', monospace;">
+            Planetary Multi-Spectral Remote Sensing, SAR Radar &amp; Neural Spatio-Temporal Segmentation
+          </span>
+        </div>
+        <button class="btn-icon" id="btn-close-explainer-modal" aria-label="Close Explainer Modal">✕</button>
+      </div>
+      <div class="modal-body custom-scroll"
+        style="max-height: 72vh; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+
+        <div
+          style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 14px; font-size: 12.5px; line-height: 1.6; color: #E2E8F0;">
+          <strong style="color: #fff; display: block; margin-bottom: 6px; font-size: 14px;">An "MRI Scanner" for Planet
+            Earth</strong>
+          Standard optical photographs only show visible light. When dense monsoon storm clouds blanket Nepal or smoke envelopes a wildfire in California, optical sensors get obscured.
+          <br><br>
+          EcoPulse fuses <strong>Sentinel-2 Multi-Spectral (NIR, Red, SWIR)</strong> with <strong>Sentinel-1 C-Band Synthetic Aperture Radar (SAR)</strong>. Radar microwaves easily penetrate cloud covers, while multi-spectral bands isolate chlorophyll loss, soil moisture saturation, and flood water expansion in real time.
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+          <div
+            style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div
+              style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--flame-bright); margin-bottom: 4px; font-weight: 700;">
+              RED (665 nm) &amp; SWIR (2190 nm)</div>
+            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Thermal &amp; Burn Severity</div>
+            <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+              Short-wave infrared penetrates smoke. Used in Normalized Burn Ratio ($\text{NBR}$) to segment charcoal scars.
+            </div>
+          </div>
+
+          <div
+            style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div
+              style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #38BDF8; margin-bottom: 4px; font-weight: 700;">
+              GREEN (560 nm) &amp; MNDWI</div>
+            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Water Index Extraction</div>
+            <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+              Water strongly reflects visible green light while completely absorbing SWIR light, creating peak contrast for flood detection.
+            </div>
+          </div>
+
+          <div
+            style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div
+              style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #A78BFA; margin-bottom: 4px; font-weight: 700;">
+              SENTINEL-1 SAR RADAR (C-Band)</div>
+            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Cloud-Penetrating Inundation</div>
+            <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+              Smooth flood waters cause specular reflection, sending microwave energy away from the satellite. This causes a steep drop in backscatter ($\sigma^0$).
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+          <div
+            style="font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--solar-bright); margin-bottom: 10px; font-weight: 700; text-transform: uppercase;">
+            Mathematical Formulations &amp; Hazard Indices
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div
+              style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #F97316;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <strong style="color: #F97316; font-size: 11.5px;">1. Flash Flood Susceptibility Index (FFSI)</strong>
+                <span style="font-size: 10px; color: var(--ink-muted);">Cloudburst Runoff Risk</span>
+              </div>
+              <div style="font-size: 13px; color: #fff; margin: 4px 0;">
+                $$\text{FFSI} = \alpha \cdot \text{Saturation} + \beta \cdot \Delta P_{72\text{h}} + \gamma \cdot \text{CN} \qquad (\text{Amber Warning Signal})$$
+              </div>
+              <div style="font-size: 10.5px; color: var(--ink-muted);">
+                Integrates antecedent soil saturation, 72-hour precipitation anomaly, and runoff curve number to paint flash flood risk.
+              </div>
+            </div>
+
+            <div
+              style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #0284C7;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <strong style="color: #0284C7; font-size: 11.5px;">2. SAR Radar Specular Drop &amp; Inundation Extent</strong>
+                <span style="font-size: 10px; color: var(--ink-muted);">Standing Flood Water</span>
+              </div>
+              <div style="font-size: 13px; color: #fff; margin: 4px 0;">
+                $$\Delta\sigma^0 = \sigma^0_{\text{post}} - \sigma^0_{\text{pre}} \quad [\text{dB}] \qquad \text{MNDWI} = \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}}$$
+              </div>
+              <div style="font-size: 10.5px; color: var(--ink-muted);">
+                A backscatter attenuation of $\Delta\sigma^0 \le -6.5\text{ dB}$ paired with $\text{MNDWI} > 0.12$ isolates deep submerged floodplains in luminous electric blue.
+              </div>
+            </div>
+
+            <div
+              style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #10b981;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <strong style="color: #10b981; font-size: 11.5px;">3. Normalized Difference Vegetation Index (NDVI)</strong>
+                <span style="font-size: 10px; color: var(--ink-muted);">Canopy Greenness &amp; Photosynthesis</span>
+              </div>
+              <div style="font-size: 13px; color: #fff; margin: 4px 0;">
+                $$\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}$$
+              </div>
+              <div style="font-size: 10.5px; color: var(--ink-muted);">
+                Ranges from $-1.0$ (water) to $+1.0$ (dense rainforest canopy). Stressed plants fall between $0.20$ and $0.45$.
+              </div>
+            </div>
+
+            <div
+              style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #ef4444;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <strong style="color: #ef4444; font-size: 11.5px;">4. Normalized Burn Ratio (NBR) &amp; Burn Severity ($\Delta\text{NBR}$)</strong>
+                <span style="font-size: 10px; color: var(--ink-muted);">Wildfire Severity</span>
+              </div>
+              <div style="font-size: 13px; color: #fff; margin: 4px 0;">
+                $$\text{NBR} = \frac{\text{NIR} - \text{SWIR}}{\text{NIR} + \text{SWIR}} \qquad \Longrightarrow \qquad \Delta\text{NBR} = \text{NBR}_{\text{pre}} - \text{NBR}_{\text{post}}$$
+              </div>
+              <div style="font-size: 10.5px; color: var(--ink-muted);">
+                $\Delta\text{NBR} > 0.44$ indicates high burn severity where mature canopy biomass was converted into charcoal and ash.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="font-family: 'IBM Plex Mono'; font-size: 11px; color: var(--spectral-bright); margin-bottom: 8px; font-weight: 700; text-transform: uppercase;">
+            How the Spatio-Temporal Neural Network Works (4 Steps)
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--veg-bright); margin-bottom: 4px; font-weight: 700;">
+                STEP 1: MULTI-MODAL INGESTION</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Time-Stacked Tensors</div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                The model loads multi-spectral tiles across 2 time steps ($T_0$ pre-event baseline and $T_1$ post-event pass) as a $5\text{D}$ tensor: $(B, T=2, H=256, W=256, C=3)$.
+              </div>
+            </div>
+
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--spectral-bright); margin-bottom: 4px; font-weight: 700;">
+                STEP 2: SPATIAL ENCODER</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">2D Convolutions</div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                Shared $32 \to 64 \to 128$ convolutional filters extract riverbeds, terrain contours, embankments, and canopy structure independently for each image.
+              </div>
+            </div>
+
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--flame-bright); margin-bottom: 4px; font-weight: 700;">
+                STEP 3: TEMPORAL MEMORY</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">ConvLSTM2D Delta Gating</div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                A recurrent convolutional memory cell isolates sudden water expansion and thermal burns while ignoring harmless seasonal variations.
+              </div>
+            </div>
+
+            <div
+              style="background: var(--surface-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+              <div
+                style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #A78BFA; margin-bottom: 4px; font-weight: 700;">
+                STEP 4: DAMAGE MAP OUTPUT</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">U-Net Transposed Decoder</div>
+              <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
+                Upsamples features with skip connections to output a precise $256 \times 256$ damage probability mask, vectorised into glowing GeoJSON damage polygons on the map.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-close-explainer-done">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Landscape Orientation Lock Prompt Overlay -->
+  <div id="orientation-overlay" class="orientation-overlay">
+    <div class="orientation-box">
+      <div class="phone-rotate-icon">
+        <i class="fa-solid fa-mobile-screen-button rotate-animation"></i>
+      </div>
+      <h3 class="orientation-title">Landscape Mode Required</h3>
+      <p class="orientation-desc">
+        EcoPulse Planetary Climate Intelligence is locked to landscape orientation for optimal mission-control satellite mapping.
+      </p>
+      <button class="btn-primary" id="btn-force-landscape" style="margin-top: 6px;">
+        <i class="fa-solid fa-rotate"></i>
+        <span>Rotate &amp; Lock Landscape</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Action completed.</div>
+
+  <script src="js/app.js"></script>
+</body>
+
+</html>
