@@ -66,43 +66,6 @@ graph TD
     API <--> GEE
 ```
 
-### Directory Structure
-
-```text
-ecopulse/
-├── client/                     # Web Frontend Client
-│   ├── css/style.css           # Glassmorphic Dark UI & Responsive Layouts
-│   ├── js/app.js               # Application Orchestrator, Maps, & Visuals
-│   ├── favicon.svg             # Vector Application Favicon
-│   ├── index.html              # Single Page Application Markup
-│   ├── Dockerfile              # Nginx Alpine Container Definition
-│   └── nginx.conf              # Reverse Proxy & Gzip Configuration
-├── server/                     # Python FastAPI & AI Backend
-│   ├── data/                   # Planetary Training Datasets
-│   │   └── train.csv           # Empirical Hydrological Observations
-│   ├── weights/                # Model Weights & Parametric Manifests
-│   │   ├── flood_risk_model.json
-│   │   ├── weights_manifest.json
-│   │   └── unet_burn.h5
-│   ├── tests/                  # Pytest Unit & Integration Test Suite
-│   │   └── test_api.py
-│   ├── app.py                  # FastAPI Application Routes & Tile Streamer
-│   ├── gee_utils.py            # Earth Engine Ingestion & Telemetry Core
-│   ├── model.py                # Spatio-Temporal U-Net & Flood Segmenter
-│   ├── train.py                # Model Training & Calibration Script
-│   ├── requirements.txt        # Python Dependencies
-│   └── Dockerfile              # Python 3.11 Slim Container Definition
-├── .github/workflows/          # CI/CD Workflows
-│   ├── ci.yml                  # Automated Pytest Suite
-│   └── deploy-gh-pages.yml     # Automated GitHub Pages Deployment
-├── docker-compose.yml          # Multi-Container Orchestration
-├── render.yaml                 # Render.com Cloud Deployment Blueprint
-├── start.bat                   # Instant Windows Launcher Script
-└── README.md                   # Repository Documentation
-```
-
----
-
 ## ⚡ Quick Start
 
 ### 1. Windows One-Click Launcher
