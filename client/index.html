@@ -87,7 +87,6 @@
         </div>
       </div>
 
-      <!-- Hazard Mode Switcher -->
       <div class="hazard-switcher-wrap">
         <div class="hazard-switcher">
           <button class="hazard-tab active" id="tab-hazard-flood" data-hazard="flood">
@@ -102,7 +101,6 @@
         </div>
       </div>
 
-      <!-- Telemetry Metrics Panel -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title" id="metrics-panel-title">Telemetry Metrics</span>
@@ -142,13 +140,11 @@
         </div>
       </div>
 
-      <!-- Dedicated Multi-Spectral & SAR Raster Layers -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title" id="layers-panel-title">Flash Flood &amp; SAR Raster Layers</span>
         </div>
-        
-        <!-- Flash Flood Mode Raster Layer Pills (Primary Mode) -->
+
         <div class="layer-pills" id="layer-pills-flood">
           <button class="layer-btn active" data-layer="flood_risk">
             <span class="dot" style="background: #F97316;"></span>
@@ -172,7 +168,6 @@
           </button>
         </div>
 
-        <!-- Wildfire Mode Raster Layer Pills (Secondary Mode) -->
         <div class="layer-pills" id="layer-pills-wildfire" style="display: none;">
           <button class="layer-btn active" data-layer="ndvi">
             <span class="dot" style="background: var(--veg-bright);"></span>
@@ -193,12 +188,10 @@
         </div>
       </div>
 
-      <!-- Time-Series Chart with Mode-Specific Tabs -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title" id="chart-panel-title">Multi-Spectral Indices</span>
-          
-          <!-- Flash Flood Chart Tabs (Primary Mode) -->
+
           <div class="chart-tabs" id="chart-tabs-flood">
             <button class="chart-tab active" data-metric="rainfall_mm" style="color: #C4B5FD;">RAINFALL</button>
             <button class="chart-tab" data-metric="soil_saturation" style="color: #5EEAD4;">SATURATION</button>
@@ -206,7 +199,6 @@
             <button class="chart-tab" data-metric="flood_risk_ffsi" style="color: #FDBA74;">FFSI RISK</button>
           </div>
 
-          <!-- Wildfire Chart Tabs (Secondary Mode) -->
           <div class="chart-tabs" id="chart-tabs-wildfire" style="display: none;">
             <button class="chart-tab active" data-metric="ndvi">NDVI</button>
             <button class="chart-tab" data-metric="ndwi">NDWI</button>
@@ -223,7 +215,6 @@
         </div>
       </div>
 
-      <!-- Flash Flood Risk & Soil Saturation Panel (Primary Mode) -->
       <div class="panel" id="panel-flood-section">
         <div class="panel-header">
           <span class="panel-title">Flash Flood Risk &amp; Saturation (FFSI)</span>
@@ -286,7 +277,6 @@
         </div>
       </div>
 
-      <!-- Drought Risk Panel (Wildfire Mode - Secondary) -->
       <div class="panel" id="panel-drought-section" style="display: none;">
         <div class="panel-header">
           <span class="panel-title">Agricultural Drought Index (VCI)</span>
@@ -322,7 +312,6 @@
         </div>
       </div>
 
-      <!-- Planetary Multi-Hazard Alert Stream -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Multi-Hazard Alert Stream</span>
@@ -333,7 +322,6 @@
         </div>
       </div>
 
-      <!-- Deep Learning AI Studio -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title" id="studio-panel-title">Flash Flood &amp; Inundation AI</span>
@@ -422,7 +410,6 @@
 
       <div id="globe-3d-wrap" style="display: none;"></div>
 
-      <!-- 2D-Style Popout Card for 3D Globe -->
       <div id="globe-popout-card" class="globe-2d-style-popup" style="display: none;">
         <button class="globe-popup-close-btn" id="btn-close-globe-popout" aria-label="Close Popout">&times;</button>
         <div class="globe-popup-content">
@@ -439,7 +426,6 @@
         </div>
       </div>
 
-      <!-- 3D Globe Glassmorphic Info Card Overlay -->
       <div id="globe-glassmorphic-card" class="globe-glassmorphic-card" style="display: none;">
         <div class="globe-card-header">
           <div class="globe-card-title-wrap">
@@ -504,7 +490,6 @@
         </button>
       </div>
 
-      <!-- Dedicated Map Tools & Zoom Control Panel -->
       <div id="map-tools-panel" class="map-tools-panel" aria-label="Map Control Toolbar">
         <div class="map-tool-group">
           <button class="map-tool-btn" id="btn-zoom-in" title="Zoom In (+)" aria-label="Zoom In">
@@ -535,7 +520,6 @@
         </div>
       </div>
 
-      <!-- Separated Quick Regions Bar (Flash Flood Mode - Primary) -->
       <div id="quick-regions-flood" class="quick-regions-bar">
         <button class="quick-region-btn active" data-region="nepal">Nepal &amp; Tibet</button>
         <button class="quick-region-btn" data-region="india">India</button>
@@ -545,7 +529,6 @@
         <button class="quick-region-btn" data-region="libya">Libya Derna</button>
       </div>
 
-      <!-- Separated Quick Regions Bar (Wildfire Mode - Secondary) -->
       <div id="quick-regions-wildfire" class="quick-regions-bar" style="display: none;">
         <button class="quick-region-btn" data-region="amazon">Amazon</button>
         <button class="quick-region-btn" data-region="california">Sierra Nevada</button>
@@ -556,9 +539,8 @@
         <button class="quick-region-btn" data-region="siberia">Siberia</button>
       </div>
 
-      <!-- Dynamic Legend -->
       <div id="legend">
-        <!-- Flash Flood Swatches (Primary Mode) -->
+
         <div id="legend-items-flood">
           <div class="legend-item">
             <span class="legend-swatch" style="background: #F97316;"></span>
@@ -578,7 +560,6 @@
           </div>
         </div>
 
-        <!-- Wildfire Swatches (Secondary Mode) -->
         <div id="legend-items-wildfire" style="display: none;">
           <div class="legend-item">
             <span class="legend-swatch" style="background: #10b981;"></span>
@@ -833,7 +814,6 @@
     </div>
   </div>
 
-  <!-- Mobile Landscape Orientation Lock Prompt Overlay -->
   <div id="orientation-overlay" class="orientation-overlay">
     <div class="orientation-box">
       <div class="phone-rotate-icon">

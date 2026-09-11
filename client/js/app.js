@@ -1001,8 +1001,10 @@
 
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
-    const w = canvas.parentElement.clientWidth;
-    const h = canvas.parentElement.clientHeight;
+    const container = canvas.parentElement;
+    const rect = container ? container.getBoundingClientRect() : null;
+    const w = (rect && rect.width > 0) ? rect.width : (container ? container.clientWidth : 280);
+    const h = (rect && rect.height > 0) ? rect.height : (container ? container.clientHeight : 140);
 
     canvas.width = w * dpr;
     canvas.height = h * dpr;
