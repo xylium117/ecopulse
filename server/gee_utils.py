@@ -15,39 +15,84 @@ logger =logging .getLogger ("ecopulse.gee")
 
 _ee_initialized =False
 
-def _try_init_ee ()->bool :
+def _try_init_ee() -> bool:
     global _ee_initialized
-    if _ee_initialized :
+    if _ee_initialized:
         return True
 
-    try :
+    try:
         import ee
-    except ImportError :
-        logger .warning ("earthengine-api not installed — GEE calls will use high-fidelity synthetic telemetry.")
+    except ImportError:
+        logger.warning("earthengine-api not installed — GEE calls will use high-fidelity synthetic telemetry.")
         return False
 
-    try :
-        api_key =os .environ .get ("GEE_API_KEY")
-        service_account =os .environ .get ("GEE_SERVICE_ACCOUNT")
-        credentials_path =os .environ .get ("GEE_CREDENTIALS_PATH")
-        project =os .environ .get ("GEE_PROJECT")or "ecopulse-planetary"
+    try:
+        import json
 
-        if service_account and credentials_path and os .path .exists (credentials_path ):
-            credentials =ee .ServiceAccountCredentials (service_account ,credentials_path )
-            ee .Initialize (credentials ,project =project )
-        elif api_key :
-            try :
-                ee .Initialize (project =project ,opt_url ="https://earthengine.googleapis.com")
-            except Exception :
-                ee .Initialize (project =project )
-        else :
-            ee .Initialize (project =project )
+        raw_json = os.environ.get("GEE_SERVICE_ACCOUNT_JSON") or os.environ.get("GEE_CREDENTIALS_JSON")
+        service_account = os.environ.get("GEE_SERVICE_ACCOUNT")
+        credentials_path = os.environ.get("GEE_CREDENTIALS_PATH")
+        project = os.environ.get("GEE_PROJECT") or "tidy-elf-448805-k4"
 
-        _ee_initialized =True
-        logger .info ("Google Earth Engine successfully initialized.")
-        return True
-    except Exception as exc :
-        logger .warning ("Earth Engine initialization skipped (%s) — using synthetic telemetry.",exc )
+        candidate_paths = [
+            credentials_path,
+            "/etc/secrets/gee_credentials.json",
+            "secrets/gee_credentials.json",
+            "./secrets/gee_credentials.json",
+            os.path.join(os.path.dirname(__file__), "..", "secrets", "gee_credentials.json"),
+            os.path.join(os.path.dirname(__file__), "secrets", "gee_credentials.json"),
+        ]
+
+        found_path = None
+        for cp in candidate_paths:
+            if cp and os.path.exists(cp) and os.path.isfile(cp):
+                found_path = cp
+                break
+
+        if raw_json and raw_json.strip().startswith("{"):
+            try:
+                parsed = json.loads(raw_json)
+                sa_email = service_account or parsed.get("client_email")
+                proj_id = project or parsed.get("project_id", "tidy-elf-448805-k4")
+                credentials = ee.ServiceAccountCredentials(sa_email, key_data=raw_json)
+                ee.Initialize(credentials, project=proj_id)
+                _ee_initialized = True
+                logger.info("Google Earth Engine successfully initialized via raw Service Account JSON.")
+                return True
+            except Exception as e:
+                logger.warning("Failed initializing GEE from raw JSON string: %s", e)
+
+        if found_path:
+            try:
+                with open(found_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                sa_email = service_account or data.get("client_email")
+                proj_id = project or data.get("project_id", "tidy-elf-448805-k4")
+                credentials = ee.ServiceAccountCredentials(sa_email, found_path)
+                ee.Initialize(credentials, project=proj_id)
+                _ee_initialized = True
+                logger.info("Google Earth Engine successfully initialized via Service Account file: %s", found_path)
+                return True
+            except Exception as e:
+                logger.warning("Failed initializing GEE from credentials file %s: %s", found_path, e)
+
+        api_key = os.environ.get("GEE_API_KEY")
+        if api_key:
+            try:
+                ee.Initialize(project=project, opt_url="https://earthengine.googleapis.com")
+                _ee_initialized = True
+                logger.info("Google Earth Engine initialized via API key.")
+                return True
+            except Exception:
+                ee.Initialize(project=project)
+                _ee_initialized = True
+                logger.info("Google Earth Engine initialized.")
+                return True
+
+        logger.info("GEE service account credentials not detected. Operating in High-Fidelity Synthetic Telemetry mode.")
+        return False
+    except Exception as exc:
+        logger.warning("Earth Engine initialization skipped (%s) — using synthetic telemetry.", exc)
         return False
 
 def get_ee_status ()->Dict [str ,Any ]:
