@@ -3,14 +3,17 @@ services:
     name: ecopulse-api
     runtime: python
     plan: free
-    buildCommand: pip install --no-cache-dir --default-timeout=1000 -r server/requirements.txt
+    buildCommand: pip install --no-cache-dir -r server/requirements.txt
     startCommand: uvicorn server.app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: CORS_ORIGINS
         value: "*"
-      - key: GEE_API_KEY
+      - key: GEE_PROJECT
+        value: tidy-elf-448805-k4
+      - key: GEE_SERVICE_ACCOUNT
+        value: ecopulse-gee-sa@tidy-elf-448805-k4.iam.gserviceaccount.com
+      - key: GEE_CREDENTIALS_PATH
         sync: false
-      - key: MAPBOX_TOKEN
-        sync: false
+

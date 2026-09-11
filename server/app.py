@@ -19,12 +19,16 @@ from pydantic import BaseModel ,Field
 
 load_dotenv ()
 
-try :
+try:
     from server import gee_utils
-    from server .model import FloodSegmenter ,WildfireSegmenter
-except ImportError :
-    from backend import gee_utils
-    from backend .model import FloodSegmenter ,WildfireSegmenter
+    from server.model import FloodSegmenter, WildfireSegmenter
+except ImportError:
+    try:
+        from backend import gee_utils
+        from backend.model import FloodSegmenter, WildfireSegmenter
+    except ImportError:
+        import gee_utils
+        from model import FloodSegmenter, WildfireSegmenter
 
 logging .basicConfig (
 level =logging .INFO ,
