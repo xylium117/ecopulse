@@ -9,7 +9,8 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)&nbsp;
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)&nbsp;
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white)&nbsp;
-![Mapbox](https://img.shields.io/badge/Mapbox_GL-000000?style=for-the-badge&logo=mapbox&logoColor=white)&nbsp;
+![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=threedotjs&logoColor=white)&nbsp;
+![Globe.gl](https://img.shields.io/badge/Globe.gl-38bdf8?style=for-the-badge&logo=globe&logoColor=white)&nbsp;
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)&nbsp;
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
@@ -20,16 +21,16 @@
 **EcoPulse** is an Earth Observation (EO) and climate risk intelligence system designed to process multi-spectral optical and synthetic aperture radar (SAR) satellite data in real time. It unifies bi-temporal computer vision models, planetary hydrology regressors, and an interactive GIS interface into a high-performance command center.
 
 The platform provides dual operational modes:
-1. **🔥 Wildfire & Biomass Loss Engine**: Bi-temporal burn scar segmentation, active thermal hotspot tracking, canopy loss quantification, and $CO_2$ emission estimation using a Spatio-Temporal U-Net with ConvLSTM2D bottlenecks.
-2. **🌊 Flash Flood & Inundation Engine**: Multi-modal Sentinel-1 SAR backscatter drop detection, MNDWI water expansion analysis, and multivariate flood susceptibility modeling (FFSI) trained directly on empirical basin telemetry (`server/data/train.csv`).
+1. **🌊 Flash Flood & Inundation Engine (Primary)**: Multi-modal Sentinel-1 SAR backscatter drop detection, MNDWI water expansion analysis, and multivariate flood susceptibility modeling (FFSI) trained directly on empirical basin telemetry (`server/data/train.csv`).
+2. **🔥 Wildfire & Biomass Loss Engine (Secondary)**: Bi-temporal burn scar segmentation, active thermal hotspot tracking, canopy loss quantification, and $CO_2$ emission estimation using a Spatio-Temporal U-Net with ConvLSTM2D bottlenecks.
 
 ---
 
 ## 🚀 Key Features
 
 - **Dual Visualization Engines**:
-  - **Open Satellite Engine**: Zero-API-key open GIS renderer pairing ESRI World Imagery with CartoDB Dark Matter base maps.
-  - **Mapbox 3D Globe**: Spherical planetary projection with atmospheric shaders and terrain relief.
+  - **Open Satellite Engine (2D)**: Zero-API-key open GIS renderer pairing ESRI World Imagery with CartoDB Dark Matter base maps.
+  - **Planetary WebGL Globe (3D)**: Token-free hardware-accelerated 3D planetary globe powered by Globe.gl and Three.js with pulsing hazard ripple rings, 3D telemetry markers, and clickable smooth camera transitions.
 - **Deep Learning Inundation & Burn Segmentation**:
   - Pre-calibrated regional disaster scenes: **Nepal & Tibet** (mountain cloudburst surge), **India** (Indo-Gangetic & Brahmaputra basin), **Valencia** (DANA flash flood), **Bangladesh** (delta river swell), **California** (Camp Fire corridor), **Amazon** (rainforest deforestation), and **Borneo** (peatland fires).
   - **Live Viewport Scanning**: Runs AI segmentation across any bounding box centered on the user's active viewport with water-body masking to eliminate false positives in oceans and seas.
@@ -42,7 +43,7 @@ The platform provides dual operational modes:
 - **Mobile & Desktop Optimized Glassmorphic UI**:
   - Responsive HUD with floating control drawers, collapsible telemetry panels, zoom lock, dynamic legends, and touch-friendly mobile landscape support.
 - **Zero-Config Fallback & Live Earth Engine Integration**:
-  - Out-of-the-box synthetic telemetry curves and procedural multi-spectral approximations when offline, seamlessly elevating to live Google Earth Engine (`COPERNICUS/S2_SR_HARMONIZED`, `COPERNICUS/S1_GRD`, `LANDSAT/LC08/C02/T1_L2`) when credentials are provided.
+  - Out-of-the-box synthetic telemetry curves and procedural multi-spectral approximations when offline, seamlessly elevating to live Google Earth Engine (`COPERNICUS/S2_SR_HARMONIZED`, `COPERNICUS/S1_GRD`, `LANDSAT/LC08/C02/T1_L2`) with your Service Account or Google Cloud Project.
 
 ---
 
@@ -50,7 +51,7 @@ The platform provides dual operational modes:
 
 ```mermaid
 graph TD
-    Client["Client Web Interface (client/)<br>• Leaflet + ESRI Satellite<br>• Mapbox GL 3D Globe<br>• Telemetry HUD"]
+    Client["Client Web Interface (client/)<br>• Leaflet + ESRI Satellite (2D)<br>• Three.js + Globe.gl Planetary Globe (3D)<br>• Glassmorphic Telemetry HUD"]
     
     API["FastAPI Server (server/app.py)<br>• REST API & Dynamic XYZ Tile Generator<br>• CORS & Viewport Filtering"]
     

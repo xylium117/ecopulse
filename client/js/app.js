@@ -1,23 +1,18 @@
 (function () {
   "use strict";
 
-  const rawSavedEngine = localStorage.getItem("ecopulse_map_engine") || "leaflet";
-  const rawToken = window.MAPBOX_TOKEN || localStorage.getItem("ecopulse_mapbox_token") || "";
-  const safeEngine = (rawSavedEngine === "mapbox" && rawToken.length > 20 && !rawToken.includes("example")) ? "mapbox" : "leaflet";
-
   const state = {
     apiBase: window.ECOPULSE_API_BASE || localStorage.getItem("ecopulse_api_base") || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:8000" : "https://ecopulse-1-uzog.onrender.com"),
-    mapboxToken: rawToken,
-    currentEngine: safeEngine,
-    activeHazard: "wildfire", // "wildfire" | "flood"
-    activeLayer: "ndvi",
-    activeMetric: "ndvi",
+    currentEngine: "leaflet",
+    activeHazard: "flood",
+    activeLayer: "flood_risk",
+    activeMetric: "rainfall_mm",
     currentRegion: {
-      id: "amazon",
-      name: "Amazon Basin, Brazil",
-      center: [-62.5, -4.5],
-      zoom: 5.5,
-      sensor: "Sentinel-2 MSI (10m)",
+      id: "nepal",
+      name: "Nepal & Tibet Mountain Basin & River Valleys",
+      center: [85.65, 27.22],
+      zoom: 6.8,
+      sensor: "Sentinel-1 SAR & S2",
     },
     timeseriesData: [],
     alertsData: [],
@@ -25,9 +20,10 @@
     leafletTileLayer: null,
     leafletMarkers: [],
     leafletAiLayer: null,
-    mapboxInstance: null,
-    mapboxMarkers: [],
-    mapboxAiLayerAdded: false,
+    globeInstance: null,
+    globeRingsData: [],
+    globePointsData: [],
+    globePolygonsData: [],
     telemetryPollTimer: null,
     currentVci: 68.4,
     vciThreshold: 35,
@@ -118,15 +114,14 @@
     legendItemsFlood: document.getElementById("legend-items-flood"),
 
     leafletContainer: document.getElementById("leaflet-map"),
-    mapboxContainer: document.getElementById("map"),
+    globeContainer: document.getElementById("globe-3d-wrap") || document.getElementById("map"),
     btnEngineLeaflet: document.getElementById("engine-leaflet-btn"),
-    btnEngineMapbox: document.getElementById("engine-mapbox-btn"),
+    btnEngineGlobe: document.getElementById("engine-globe-btn") || document.getElementById("engine-mapbox-btn"),
 
     btnSettings: document.getElementById("btn-settings"),
     modalSettings: document.getElementById("modal-settings"),
     btnCloseModal: document.getElementById("btn-close-modal"),
     btnSaveSettings: document.getElementById("btn-save-settings"),
-    inputMapboxToken: document.getElementById("input-mapbox-token"),
     statusMapEngine: document.getElementById("status-map-engine"),
     statusGee: document.getElementById("status-gee"),
     statusModel: document.getElementById("status-model"),
@@ -235,6 +230,10 @@
       onViewportChanged();
     });
 
+    state.leafletInstance.on("zoomend", () => {
+      onViewportChanged();
+    });
+
     setTimeout(() => {
       if (state.leafletInstance) {
         state.leafletInstance.invalidateSize();
@@ -300,132 +299,258 @@
     });
   }
 
-  function initMapboxMap() {
-    if (typeof mapboxgl === "undefined") return;
+  function resizeGlobe() {
+    if (!state.globeInstance || !elements.globeContainer) return;
+    const width = elements.globeContainer.clientWidth || window.innerWidth;
+    const height = elements.globeContainer.clientHeight || window.innerHeight;
+    if (width > 0 && height > 0) {
+      state.globeInstance.width(width);
+      state.globeInstance.height(height);
+    }
+  }
 
-    const token = state.mapboxToken;
-    if (!token || token.includes("example") || token.length < 10) {
-      switchMapEngine("leaflet");
-      showToast("Using Open Satellite Engine (No Mapbox token required).");
+  function create3DMapPinMesh(d) {
+    const group = new THREE.Group();
+    const isFlood = d.isFlood || (d.hazard_category === "flood") || (state.activeHazard === "flood");
+    const pinColor = new THREE.Color(d.color || (isFlood ? "#0284c7" : "#ef4444"));
+    const emissiveColor = pinColor.clone().multiplyScalar(0.7);
+
+    const sphereGeo = new THREE.SphereGeometry(1.6, 20, 20);
+    const pinMat = new THREE.MeshStandardMaterial({
+      color: pinColor,
+      emissive: emissiveColor,
+      emissiveIntensity: 0.7,
+      roughness: 0.15,
+      metalness: 0.35,
+    });
+    const sphere = new THREE.Mesh(sphereGeo, pinMat);
+    sphere.position.y = 3.6;
+    group.add(sphere);
+
+    const coreGeo = new THREE.SphereGeometry(0.72, 16, 16);
+    const coreMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.9,
+      roughness: 0.1,
+    });
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    core.position.y = 3.6;
+    core.position.z = 1.0;
+    group.add(core);
+
+    const coneGeo = new THREE.ConeGeometry(1.5, 3.2, 20);
+    coneGeo.rotateX(Math.PI);
+    const cone = new THREE.Mesh(coneGeo, pinMat);
+    cone.position.y = 1.6;
+    group.add(cone);
+
+    const beaconLight = new THREE.PointLight(pinColor, 1.2, 8);
+    beaconLight.position.y = 0.5;
+    group.add(beaconLight);
+
+    group.userData = d;
+    group.scale.set(0.65, 0.65, 0.65);
+    return group;
+  }
+
+  function showGlobeGlassmorphicPopup(d) {
+    const card = document.getElementById("globe-popout-card");
+    if (!card) return;
+
+    const isFlood = d.isFlood || (d.hazard_category === "flood") || (state.activeHazard === "flood");
+    const titleEl = document.getElementById("globe-popup-title");
+    const typeEl = document.getElementById("globe-popup-type");
+    const sevEl = document.getElementById("globe-popup-sev");
+    const confEl = document.getElementById("globe-popup-conf");
+    const descEl = document.getElementById("globe-popup-desc");
+
+    const headerColor = isFlood ? "#FB923C" : (d.severity === "CRITICAL" ? "#F87171" : "#FBBF24");
+    const sevColor = isFlood ? (d.severity === "CRITICAL" ? "#F97316" : "#0284C7") : (d.severity === "CRITICAL" ? "#EF4444" : "#F59E0B");
+
+    if (titleEl) {
+      titleEl.textContent = d.title || "REGIONAL ALERT";
+      titleEl.style.color = headerColor;
+    }
+    if (typeEl) typeEl.textContent = d.type || (isFlood ? "Flash Flood & Inundation Surge" : "Wildfire Burn Scar Detection");
+    if (sevEl) {
+      sevEl.textContent = d.severity || "CRITICAL";
+      sevEl.style.color = sevColor;
+    }
+    if (confEl) confEl.textContent = d.confidence || "96.5%";
+    if (descEl) descEl.textContent = d.description || (isFlood ? "SAR radar backscatter drop detected active water expansion." : "Thermal radiance and SWIR delta identified severe canopy loss.");
+
+    const btnView2d = document.getElementById("btn-globe-popup-view2d");
+    if (btnView2d) {
+      btnView2d.onclick = () => {
+        card.style.display = "none";
+        setRegion(d.regionId || "custom", [d.lng, d.lat]);
+        switchMapEngine("leaflet");
+      };
+    }
+
+    const btnClose = document.getElementById("btn-close-globe-popout");
+    if (btnClose) {
+      btnClose.onclick = () => {
+        card.style.display = "none";
+      };
+    }
+
+    card.style.display = "block";
+  }
+
+  function init3DGlobe() {
+    const container = elements.globeContainer;
+    if (!container) return;
+
+    const GlobeFactory = window.Globe || (typeof Globe !== "undefined" ? Globe : null);
+
+    if (!GlobeFactory) {
+      showToast("Loading 3D Planetary Globe engine...");
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/globe.gl@2.32.0/dist/globe.gl.min.js";
+      script.onload = () => {
+        init3DGlobe();
+        if (state.globeInstance) {
+          resizeGlobe();
+          const c = state.currentRegion.center;
+          state.globeInstance.pointOfView({ lat: c[1], lng: c[0], altitude: 1.25 }, 800);
+        }
+      };
+      script.onerror = () => {
+        showToast("Failed to load 3D Globe library. Reverting to Open Satellite.");
+        switchMapEngine("leaflet");
+      };
+      document.head.appendChild(script);
       return;
     }
 
-    if (state.mapboxInstance) return;
-
-    mapboxgl.accessToken = token;
+    if (state.globeInstance) {
+      resizeGlobe();
+      return;
+    }
 
     try {
-      state.mapboxInstance = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/satellite-streets-v12",
-        projection: "globe",
-        center: state.currentRegion.center,
-        zoom: state.currentRegion.zoom,
-        minZoom: 2.5,
-        maxZoom: 13,
-        maxBounds: [
-          [-180, -85],
-          [180, 85],
-        ],
-        renderWorldCopies: false,
-      });
+      container.style.display = "block";
+      const w = container.offsetWidth || container.clientWidth || window.innerWidth;
+      const h = container.offsetHeight || container.clientHeight || window.innerHeight;
 
-      state.mapboxInstance.on("style.load", () => {
-        state.mapboxInstance.setFog({
-          color: "rgb(12, 18, 25)",
-          "high-color": "rgb(36, 92, 223)",
-          "horizon-blend": 0.08,
-          "space-color": "rgb(6, 9, 14)",
-          "star-intensity": 0.6,
+      state.globeInstance = GlobeFactory()(container)
+        .width(w)
+        .height(h)
+        .globeImageUrl("https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg")
+        .bumpImageUrl("https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png")
+        .backgroundImageUrl("https://cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png")
+        .atmosphereColor("#38bdf8")
+        .atmosphereAltitude(0.18)
+        .showAtmosphere(true)
+        .customLayerData(state.globePingsData || [])
+        .customLayerLabel(() => null)
+        .customThreeObject((d) => create3DMapPinMesh(d))
+        .customThreeObjectUpdate((obj, d) => {
+          const coords = state.globeInstance.getCoords(d.lat, d.lng, 0.012);
+          Object.assign(obj.position, coords);
+
+          const normal = new THREE.Vector3(coords.x, coords.y, coords.z).normalize();
+          obj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+        })
+        .onCustomLayerClick((d) => {
+          showGlobeGlassmorphicPopup(d);
+          setRegion(d.regionId || "custom", [d.lng, d.lat]);
+        })
+        .onCustomLayerHover((d) => {
+          if (elements.globeContainer) {
+            elements.globeContainer.style.cursor = d ? "pointer" : "default";
+          }
+        })
+        .ringLat((d) => d.lat)
+        .ringLng((d) => d.lng)
+        .ringColor((d) => d.color)
+        .ringMaxRadius((d) => d.maxR || 5)
+        .ringPropagationSpeed((d) => d.propagationSpeed || 2)
+        .ringRepeatPeriod((d) => d.repeatPeriod || 1200)
+        .polygonsData(state.globePolygonsData || [])
+        .polygonCapColor((d) => d.properties?.color || "rgba(2, 132, 199, 0.45)")
+        .polygonSideColor(() => "rgba(2, 132, 199, 0.15)")
+        .polygonStrokeColor((d) => d.properties?.strokeColor || "#38bdf8")
+        .polygonAltitude(0.015);
+
+      const c = state.currentRegion.center;
+      state.globeInstance.pointOfView({ lat: c[1], lng: c[0], altitude: 1.25 }, 0);
+
+      const controls = state.globeInstance.controls();
+      if (controls) {
+        controls.autoRotate = false;
+        controls.autoRotateSpeed = 0.4;
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.rotateSpeed = 0.75;
+        controls.minDistance = 101;
+        controls.maxDistance = 1000;
+        controls.minPolarAngle = 0.001;
+        controls.maxPolarAngle = Math.PI - 0.001;
+
+        controls.addEventListener("change", () => {
+          const pov = state.globeInstance.pointOfView();
+          if (elements.hudCoords && pov) {
+            elements.hudCoords.textContent = `LON ${pov.lng.toFixed(2)} · LAT ${pov.lat.toFixed(2)} · ALT ${pov.altitude.toFixed(2)}`;
+          }
         });
 
-        updateMapboxTelemetryLayer();
-        renderAlertMapboxMarkers(state.alertsData);
-      });
+        controls.addEventListener("end", () => {
+          onViewportChanged();
+        });
+      }
 
-      state.mapboxInstance.on("move", () => {
-        const c = state.mapboxInstance.getCenter();
-        if (elements.hudCoords) {
-          elements.hudCoords.textContent = `LON ${c.lng.toFixed(2)} · LAT ${c.lat.toFixed(2)} · ZOOM ${state.mapboxInstance.getZoom().toFixed(1)}`;
-        }
-      });
-
-      state.mapboxInstance.on("moveend", () => {
-        onViewportChanged();
-      });
+      renderAlertGlobeMarkers(state.alertsData);
+      setTimeout(() => resizeGlobe(), 100);
     } catch (e) {
-      console.warn("Mapbox initialization error:", e);
+      console.warn("Globe.gl initialization error:", e);
       switchMapEngine("leaflet");
     }
   }
 
-  function updateMapboxTelemetryLayer() {
-    if (!state.mapboxInstance || !state.mapboxInstance.isStyleLoaded()) return;
+  function renderAlertGlobeMarkers(alerts) {
+    if (!state.globeInstance || !alerts || !alerts.length) return;
 
-    const sourceId = "ecopulse-raster-src";
-    const layerId = "ecopulse-raster-layer";
-
-    if (state.mapboxInstance.getLayer(layerId)) {
-      state.mapboxInstance.removeLayer(layerId);
-    }
-    if (state.mapboxInstance.getSource(sourceId)) {
-      state.mapboxInstance.removeSource(sourceId);
-    }
-
-    const tileUrl = `${state.apiBase}/api/tiles/${state.activeLayer}/{z}/{x}/{y}.png`;
-    state.mapboxInstance.addSource(sourceId, {
-      type: "raster",
-      tiles: [tileUrl],
-      tileSize: 256,
-      bounds: [-180, -85, 180, 85],
-    });
-
-    state.mapboxInstance.addLayer({
-      id: layerId,
-      type: "raster",
-      source: sourceId,
-      paint: {
-        "raster-opacity": 0.65,
-        "raster-fade-duration": 200,
-      },
-    });
-  }
-
-  function renderAlertMapboxMarkers(alerts) {
-    if (!state.mapboxInstance || !alerts || !alerts.length) return;
-
-    state.mapboxMarkers.forEach((m) => m.remove());
-    state.mapboxMarkers = [];
+    const pings = [];
+    const rings = [];
 
     alerts.forEach((alert) => {
       const isCrit = alert.severity === "CRITICAL";
-      const isFlood = alert.type.toLowerCase().includes("flood") || alert.type.toLowerCase().includes("inundation");
+      const isFlood = (alert.hazard_category === "flood") || alert.type.toLowerCase().includes("flood") || alert.type.toLowerCase().includes("inundation");
       const color = isFlood ? (isCrit ? "#F97316" : "#0284C7") : (isCrit ? "#EF4444" : "#F59E0B");
 
-      const el = document.createElement("div");
-      el.style.width = "14px";
-      el.style.height = "14px";
-      el.style.borderRadius = "50%";
-      el.style.backgroundColor = color;
-      el.style.boxShadow = `0 0 12px ${color}`;
-      el.style.border = "2px solid #fff";
-      el.style.cursor = "pointer";
+      const ringColor = (t) => {
+        const base = isFlood ? (isCrit ? "249, 115, 22" : "2, 132, 199") : (isCrit ? "239, 68, 68" : "245, 158, 11");
+        return `rgba(${base}, ${Math.sqrt(Math.max(0, 1 - t))})`;
+      };
 
-      const popup = new mapboxgl.Popup({ offset: 12 }).setHTML(`
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#fff;background:#0c1219;padding:8px;border-radius:6px;min-width:200px;">
-          <div style="font-weight:700;color:${isFlood ? "#FB923C" : (isCrit ? "#F87171" : "#FBBF24")};margin-bottom:4px;">${alert.title}</div>
-          <div style="color:#94A3B8;">Type: <strong style="color:#fff;">${alert.type}</strong></div>
-          <div style="color:#94A3B8;">Severity: <strong style="color:${color};">${alert.severity}</strong></div>
-        </div>
-      `);
+      pings.push({
+        lat: alert.coordinates[1],
+        lng: alert.coordinates[0],
+        title: alert.title,
+        severity: alert.severity,
+        confidence: alert.confidence || "95%",
+        color: color,
+        isFlood: isFlood,
+        description: alert.description,
+        regionId: alert.region ? alert.region.toLowerCase() : null,
+      });
 
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat(alert.coordinates)
-        .setPopup(popup)
-        .addTo(state.mapboxInstance);
-
-      state.mapboxMarkers.push(marker);
+      rings.push({
+        lat: alert.coordinates[1],
+        lng: alert.coordinates[0],
+        color: ringColor,
+        maxR: isCrit ? 6.5 : 4.5,
+        propagationSpeed: isCrit ? 2.5 : 1.8,
+        repeatPeriod: isCrit ? 900 : 1300,
+      });
     });
+
+    state.globePingsData = pings;
+    state.globeInstance.customLayerData(pings);
+    state.globeInstance.ringsData(rings);
   }
 
   function onViewportChanged() {
@@ -460,10 +585,10 @@
       const curr = state.leafletInstance.getZoom();
       if (curr < 13) state.leafletInstance.setZoom(Math.min(13, curr + 1));
       else showToast("Maximum zoom level (13) reached for crisp satellite imagery.");
-    } else if (state.mapboxInstance) {
-      const curr = state.mapboxInstance.getZoom();
-      if (curr < 13) state.mapboxInstance.setZoom(Math.min(13, curr + 1));
-      else showToast("Maximum zoom level (13) reached for crisp satellite imagery.");
+    } else if (state.globeInstance) {
+      const pov = state.globeInstance.pointOfView();
+      const newAlt = Math.max(0.15, (pov.altitude || 1.2) * 0.7);
+      state.globeInstance.pointOfView({ ...pov, altitude: newAlt }, 400);
     }
   }
 
@@ -475,14 +600,15 @@
     if (state.currentEngine === "leaflet" && state.leafletInstance) {
       const curr = state.leafletInstance.getZoom();
       if (curr > 3) state.leafletInstance.setZoom(Math.max(3, curr - 1));
-    } else if (state.mapboxInstance) {
-      const curr = state.mapboxInstance.getZoom();
-      if (curr > 2.5) state.mapboxInstance.setZoom(Math.max(2.5, curr - 1));
+    } else if (state.globeInstance) {
+      const pov = state.globeInstance.pointOfView();
+      const newAlt = Math.min(3.5, (pov.altitude || 1.2) * 1.35);
+      state.globeInstance.pointOfView({ ...pov, altitude: newAlt }, 400);
     }
   }
 
   function handleRecenter() {
-    setRegion(state.currentRegion.id || "amazon");
+    setRegion(state.currentRegion.id || "nepal");
     showToast(`Recentered view on ${state.currentRegion.name}`);
   }
 
@@ -524,15 +650,10 @@
       }
     }
 
-    if (state.mapboxInstance) {
-      if (state.isZoomLocked) {
-        state.mapboxInstance.scrollZoom.disable();
-        state.mapboxInstance.doubleClickZoom.disable();
-        state.mapboxInstance.touchZoomRotate.disable();
-      } else {
-        state.mapboxInstance.scrollZoom.enable();
-        state.mapboxInstance.doubleClickZoom.enable();
-        state.mapboxInstance.touchZoomRotate.enable();
+    if (state.globeInstance) {
+      const controls = state.globeInstance.controls();
+      if (controls) {
+        controls.enableZoom = !state.isZoomLocked;
       }
     }
 
@@ -550,33 +671,83 @@
   }
 
   function switchMapEngine(engineName) {
+    if (engineName === "mapbox") engineName = "globe";
     state.currentEngine = engineName;
     localStorage.setItem("ecopulse_map_engine", engineName);
 
+    const leafletEl = document.getElementById("leaflet-map");
+    const globeEl = document.getElementById("globe-3d-wrap");
+    const btnLeaflet = document.getElementById("engine-leaflet-btn");
+    const btnGlobe = document.getElementById("engine-globe-btn");
+    const statusMapEngine = document.getElementById("status-map-engine");
+
     if (engineName === "leaflet") {
-      if (elements.leafletContainer) elements.leafletContainer.style.display = "block";
-      if (elements.mapboxContainer) elements.mapboxContainer.style.display = "none";
-      if (elements.btnEngineLeaflet) elements.btnEngineLeaflet.classList.add("active");
-      if (elements.btnEngineMapbox) elements.btnEngineMapbox.classList.remove("active");
-      if (elements.statusMapEngine) elements.statusMapEngine.textContent = "Open Satellite Engine (Active)";
+      if (globeEl) {
+        globeEl.style.display = "none";
+        globeEl.style.visibility = "hidden";
+      }
+      if (leafletEl) {
+        leafletEl.style.display = "block";
+        leafletEl.style.visibility = "visible";
+      }
+      if (btnLeaflet) btnLeaflet.classList.add("active");
+      if (btnGlobe) btnGlobe.classList.remove("active");
+      if (statusMapEngine) statusMapEngine.textContent = "Open Satellite (ESRI 10m)";
 
       initLeafletMap();
-      if (state.leafletInstance) {
-        state.leafletInstance.invalidateSize();
-        if (state.isZoomLocked) toggleZoomLock(true);
+      if (elements.btnRunInference) {
+        elements.btnRunInference.disabled = false;
+        elements.btnRunInference.title = "Run AI Deep Learning Segmentation Model";
       }
-    } else {
-      if (elements.leafletContainer) elements.leafletContainer.style.display = "none";
-      if (elements.mapboxContainer) elements.mapboxContainer.style.display = "block";
-      if (elements.btnEngineLeaflet) elements.btnEngineLeaflet.classList.remove("active");
-      if (elements.btnEngineMapbox) elements.btnEngineMapbox.classList.add("active");
-      if (elements.statusMapEngine) elements.statusMapEngine.textContent = "Mapbox 3D Globe (Active)";
+      if (elements.studioStatus) {
+        elements.studioStatus.textContent = "Ready for AI inference execution.";
+      }
+      setTimeout(() => {
+        if (state.leafletInstance) {
+          state.leafletInstance.invalidateSize();
+          const target = state.currentRegion;
+          if (target && target.center) {
+            state.leafletInstance.setView([target.center[1], target.center[0]], target.zoom || 6.8);
+          }
+          if (state.isZoomLocked) toggleZoomLock(true);
+        }
+      }, 50);
 
-      initMapboxMap();
-      if (state.mapboxInstance) {
-        state.mapboxInstance.resize();
-        if (state.isZoomLocked) toggleZoomLock(true);
+      showToast("Switched to 2D Open Satellite Engine.");
+    } else {
+      if (leafletEl) {
+        leafletEl.style.display = "none";
+        leafletEl.style.visibility = "hidden";
       }
+      if (globeEl) {
+        globeEl.style.display = "block";
+        globeEl.style.visibility = "visible";
+      }
+      if (btnLeaflet) btnLeaflet.classList.remove("active");
+      if (btnGlobe) btnGlobe.classList.add("active");
+      if (statusMapEngine) statusMapEngine.textContent = "Three.js WebGL Globe (Active)";
+
+      if (elements.btnRunInference) {
+        elements.btnRunInference.disabled = true;
+        elements.btnRunInference.title = "AI deep-learning inference is disabled in 3D Globe mode. Switch to 2D Satellite.";
+      }
+      if (elements.studioStatus) {
+        elements.studioStatus.textContent = "AI model disabled on 3D Globe. Switch to 2D Satellite.";
+      }
+
+      init3DGlobe();
+      setTimeout(() => {
+        if (state.globeInstance) {
+          resizeGlobe();
+          const target = state.currentRegion;
+          if (target && target.center) {
+            const boundedLat = Math.max(-88.5, Math.min(88.5, target.center[1]));
+            state.globeInstance.pointOfView({ lat: boundedLat, lng: target.center[0], altitude: 1.25 }, 600);
+          }
+        }
+      }, 60);
+
+      showToast("Switched to 3D Planetary WebGL Globe.");
     }
   }
 
@@ -601,7 +772,7 @@
 
       if (elements.panelDroughtSection) elements.panelDroughtSection.style.display = "block";
       if (elements.panelFloodSection) elements.panelFloodSection.style.display = "none";
-      if (elements.metricsPanelTitle) elements.metricsPanelTitle.textContent = "Telemetry Metrics (Wildfire)";
+      if (elements.metricsPanelTitle) elements.metricsPanelTitle.textContent = "Telemetry Metrics";
       if (elements.metricPrimaryLabel) elements.metricPrimaryLabel.textContent = "Regional Carbon Flux";
       if (elements.studioPanelTitle) elements.studioPanelTitle.textContent = "Wildfire Burn Scar AI";
       if (elements.btnInferenceLabel) elements.btnInferenceLabel.textContent = "Run Spatio-Temporal Segmentation";
@@ -629,7 +800,7 @@
 
       if (elements.panelDroughtSection) elements.panelDroughtSection.style.display = "none";
       if (elements.panelFloodSection) elements.panelFloodSection.style.display = "block";
-      if (elements.metricsPanelTitle) elements.metricsPanelTitle.textContent = "Telemetry Metrics (Flash Flood)";
+      if (elements.metricsPanelTitle) elements.metricsPanelTitle.textContent = "Telemetry Metrics";
       if (elements.metricPrimaryLabel) elements.metricPrimaryLabel.textContent = "Flash Flood Susceptibility";
       if (elements.studioPanelTitle) elements.studioPanelTitle.textContent = "Flash Flood & Inundation AI";
       if (elements.btnInferenceLabel) elements.btnInferenceLabel.textContent = "Run Spatio-Temporal Flood AI";
@@ -667,7 +838,6 @@
 
   function updateActiveRasterLayer() {
     updateLeafletTelemetryLayer();
-    updateMapboxTelemetryLayer();
   }
 
   function getCurrentViewportBounds() {
@@ -679,6 +849,18 @@
         lon_max: b.getEast(),
         lat_max: b.getNorth(),
       };
+    } else if (state.globeInstance) {
+      const pov = state.globeInstance.pointOfView();
+      if (pov) {
+        const alt = pov.altitude || 1.25;
+        const span = Math.min(30, Math.max(1.0, alt * 9.0));
+        return {
+          lon_min: pov.lng - span,
+          lat_min: Math.max(-85, pov.lat - span),
+          lon_max: pov.lng + span,
+          lat_max: Math.min(85, pov.lat + span),
+        };
+      }
     }
     const c = state.currentRegion.center;
     const d = 1.5;
@@ -849,16 +1031,16 @@
     let glowColor = "rgba(52, 211, 153, 0.25)";
 
     if (metricKey === "rainfall_mm") {
-      strokeColor = "#8B5CF6"; // Cloudburst Purple
+      strokeColor = "#8B5CF6";
       glowColor = "rgba(139, 92, 246, 0.28)";
     } else if (metricKey === "soil_saturation") {
-      strokeColor = "#0D9488"; // Soil Saturation Teal
+      strokeColor = "#0D9488";
       glowColor = "rgba(13, 148, 136, 0.28)";
     } else if (metricKey === "mndwi") {
-      strokeColor = "#06B6D4"; // Water Index Aqua
+      strokeColor = "#06B6D4";
       glowColor = "rgba(6, 182, 212, 0.28)";
     } else if (metricKey === "flood_risk_ffsi") {
-      strokeColor = "#F97316"; // Flash Flood Amber/Orange
+      strokeColor = "#F97316";
       glowColor = "rgba(249, 115, 22, 0.28)";
     } else if (metricKey === "ndwi") {
       strokeColor = "#22D3EE";
@@ -1013,12 +1195,12 @@
   }
 
   async function loadFlashFloodRisk(centerLon, centerLat) {
-    const delta = 0.85;
+    const bounds = getCurrentViewportBounds();
     const params = new URLSearchParams({
-      lon_min: (centerLon - delta).toFixed(4),
-      lat_min: (centerLat - delta).toFixed(4),
-      lon_max: (centerLon + delta).toFixed(4),
-      lat_max: (centerLat + delta).toFixed(4),
+      lon_min: bounds.lon_min.toFixed(4),
+      lat_min: bounds.lat_min.toFixed(4),
+      lon_max: bounds.lon_max.toFixed(4),
+      lat_max: bounds.lat_max.toFixed(4),
     });
 
     try {
@@ -1028,6 +1210,11 @@
 
       state.currentFfsi = Number(data.flash_flood_susceptibility_pct) || 84.2;
       updateFloodRiskDisplay();
+
+      if (elements.metricCarbon && state.activeHazard === "flood") {
+        elements.metricCarbon.textContent = `FFSI ${state.currentFfsi.toFixed(1)}%`;
+        elements.metricCarbon.style.color = state.currentFfsi >= 60 ? "#F97316" : "#34D399";
+      }
 
       if (elements.floodStatSaturation) elements.floodStatSaturation.textContent = `${data.soil_saturation_pct}%`;
       if (elements.floodStatPrecip) elements.floodStatPrecip.textContent = `+${data.precipitation_anomaly_mm} mm`;
@@ -1047,7 +1234,7 @@
     try {
       const bounds = getCurrentViewportBounds();
       const params = new URLSearchParams({
-        hazard_mode: state.activeHazard || "wildfire",
+        hazard_mode: state.activeHazard || "flood",
         lon_min: bounds.lon_min.toFixed(4),
         lat_min: bounds.lat_min.toFixed(4),
         lon_max: bounds.lon_max.toFixed(4),
@@ -1130,6 +1317,15 @@
   }
 
   async function runSegmentationInference() {
+    if (state.currentEngine === "globe") {
+      showToast("AI Model inference is disabled on the 3D Globe. Switch to 2D Satellite mode for high-resolution AI segmentation.");
+      if (elements.studioStatus) {
+        elements.studioStatus.textContent = "AI model disabled in 3D Globe mode. Switch to 2D Satellite.";
+      }
+      if (elements.btnRunInference) elements.btnRunInference.disabled = true;
+      return;
+    }
+
     const isFlood = state.activeHazard === "flood";
     const preset = elements.presetSelect ? elements.presetSelect.value : (isFlood ? "nepal" : "california");
 
@@ -1274,40 +1470,17 @@
       state.leafletAiLayer.openPopup();
     }
 
-    if (state.mapboxInstance && state.mapboxInstance.isStyleLoaded()) {
-      const sourceId = "ecopulse-ai-segmentation-src";
-      const fillLayerId = "ecopulse-ai-segmentation-fill";
-      const lineLayerId = "ecopulse-ai-segmentation-line";
-
-      if (state.mapboxInstance.getSource(sourceId)) {
-        state.mapboxInstance.getSource(sourceId).setData(result.geojson);
-      } else {
-        state.mapboxInstance.addSource(sourceId, {
-          type: "geojson",
-          data: result.geojson,
-        });
-
-        state.mapboxInstance.addLayer({
-          id: fillLayerId,
-          type: "fill",
-          source: sourceId,
-          paint: {
-            "fill-color": themeColor,
-            "fill-opacity": 0.45,
-          },
-        });
-
-        state.mapboxInstance.addLayer({
-          id: lineLayerId,
-          type: "line",
-          source: sourceId,
-          paint: {
-            "line-color": headerColor,
-            "line-width": 3,
-            "line-dasharray": [2, 2],
-          },
-        });
-      }
+    if (state.globeInstance && result.geojson) {
+      const isFlood = (state.activeHazard === "flood");
+      const polyData = [{
+        ...result.geojson,
+        properties: {
+          color: isFlood ? "rgba(2, 132, 199, 0.55)" : "rgba(239, 68, 68, 0.55)",
+          strokeColor: headerColor,
+        }
+      }];
+      state.globePolygonsData = polyData;
+      state.globeInstance.polygonsData(polyData);
     }
 
     if (elements.hudRegion) {
@@ -1315,9 +1488,9 @@
     }
   }
 
-  function setRegion(regionKey) {
+  function setRegion(regionKey, customCoords) {
     const presets = {
-      amazon: { name: "Amazon Basin, Brazil", center: [-62.5, -4.5], zoom: 5.5, sensor: "Sentinel-2 MSI", hazard: state.activeHazard },
+      amazon: { name: "Amazon Basin, Brazil", center: [-62.5, -4.5], zoom: 5.5, sensor: "Sentinel-2 MSI", hazard: "wildfire" },
       california: { name: "Sierra Nevada, USA", center: [-119.5, 37.2], zoom: 6.2, sensor: "Sentinel-2 MSI", hazard: "wildfire" },
       congo: { name: "Congo Rainforest, DRC", center: [23.6, -0.5], zoom: 5.2, sensor: "Sentinel-2 MSI", hazard: "wildfire" },
       borneo: { name: "Borneo Peatlands, Indonesia", center: [113.9, 0.5], zoom: 5.8, sensor: "Landsat-9 OLI", hazard: "wildfire" },
@@ -1334,8 +1507,20 @@
       libya: { name: "Derna Wadi Flash Flood Basin, Libya", center: [22.63, 32.76], zoom: 7.2, sensor: "Sentinel-1 SAR GRD", hazard: "flood" },
     };
 
-    const target = presets[regionKey] || presets.amazon;
-    state.currentRegion = { id: regionKey, ...target };
+    let target = presets[regionKey];
+    if (!target && customCoords) {
+      target = {
+        name: regionKey ? regionKey.replace(/_/g, " ").toUpperCase() : "REGIONAL TELEMETRY TARGET",
+        center: customCoords,
+        zoom: 6.5,
+        sensor: state.activeHazard === "flood" ? "Sentinel-1 SAR (10m)" : "Sentinel-2 MSI (10m)",
+        hazard: state.activeHazard,
+      };
+    } else if (!target) {
+      target = presets.nepal;
+    }
+
+    state.currentRegion = { id: regionKey || "custom", ...target };
 
     if (target.hazard && target.hazard !== state.activeHazard) {
       switchHazardMode(target.hazard);
@@ -1343,8 +1528,9 @@
 
     if (state.currentEngine === "leaflet" && state.leafletInstance) {
       state.leafletInstance.flyTo([target.center[1], target.center[0]], target.zoom, { duration: 1.5 });
-    } else if (state.mapboxInstance) {
-      state.mapboxInstance.flyTo({ center: target.center, zoom: target.zoom, pitch: 28, essential: true });
+    } else if (state.globeInstance) {
+      const boundedLat = Math.max(-88.5, Math.min(88.5, target.center[1]));
+      state.globeInstance.pointOfView({ lat: boundedLat, lng: target.center[0], altitude: 0.75 }, 1100);
     }
 
     if (elements.hudRegion) elements.hudRegion.textContent = target.name.toUpperCase();
@@ -1407,11 +1593,26 @@
       elements.tabHazardFlood.addEventListener("click", () => switchHazardMode("flood"));
     }
 
-    if (elements.btnEngineLeaflet) {
-      elements.btnEngineLeaflet.addEventListener("click", () => switchMapEngine("leaflet"));
+    const btnLeaflet = document.getElementById("engine-leaflet-btn");
+    const btnGlobe = document.getElementById("engine-globe-btn");
+
+    if (btnLeaflet) {
+      btnLeaflet.onclick = function (e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        switchMapEngine("leaflet");
+      };
     }
-    if (elements.btnEngineMapbox) {
-      elements.btnEngineMapbox.addEventListener("click", () => switchMapEngine("mapbox"));
+    if (btnGlobe) {
+      btnGlobe.onclick = function (e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        switchMapEngine("globe");
+      };
     }
     if (elements.btnZoomIn) {
       elements.btnZoomIn.addEventListener("click", handleZoomIn);
@@ -1616,7 +1817,7 @@
     window.addEventListener("resize", () => {
       drawChart(state.activeMetric);
       if (state.leafletInstance) state.leafletInstance.invalidateSize();
-      if (state.mapboxInstance) state.mapboxInstance.resize();
+      if (state.globeInstance) resizeGlobe();
     });
   }
 
@@ -1625,7 +1826,7 @@
     attachEventListeners();
     loadConfig();
     loadAlerts();
-    setRegion("amazon");
+    setRegion("nepal");
     startRealTimeTelemetryLoop();
     runSegmentationInference();
 

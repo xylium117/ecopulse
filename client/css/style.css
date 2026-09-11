@@ -5,29 +5,28 @@
   --surface-panel: rgba(18, 28, 42, 0.70);
   --surface-card: rgba(22, 34, 52, 0.55);
   --surface-hover: rgba(30, 48, 72, 0.65);
-  
+
   --ink: #f1f5f9;
   --ink-muted: #94a3b8;
   --ink-faint: #475569;
   --ink-subtle: #334155;
-  
+
   --veg: #10b981;
   --veg-bright: #34d399;
   --veg-glow: rgba(16, 185, 129, 0.35);
-  
+
   --ember: #f59e0b;
   --ember-bright: #fbbf24;
   --ember-glow: rgba(245, 158, 11, 0.35);
-  
+
   --flame: #ef4444;
   --flame-bright: #f87171;
   --flame-glow: rgba(239, 68, 68, 0.35);
-  
+
   --spectral: #06b6d4;
   --spectral-bright: #22d3ee;
   --spectral-glow: rgba(6, 182, 212, 0.35);
 
-  /* Flash Flood Hazard Colors (Differentiated) */
   --flood-risk: #F97316;
   --flood-risk-bright: #FB923C;
   --flood-risk-glow: rgba(249, 115, 22, 0.40);
@@ -45,7 +44,7 @@
   --line: rgba(226, 232, 240, 0.10);
   --line-highlight: rgba(226, 232, 240, 0.20);
   --line-glow: rgba(52, 211, 153, 0.25);
-  
+
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
@@ -181,7 +180,6 @@ html, body {
   border-color: var(--line-highlight);
 }
 
-/* Hazard Mode Switcher */
 .hazard-switcher-wrap {
   margin-top: -4px;
 }
@@ -247,7 +245,6 @@ html, body {
   animation: pulse-dot 1.4s infinite;
 }
 
-/* Panels */
 .panel {
   background: var(--surface-panel);
   border: 1px solid var(--line);
@@ -312,7 +309,6 @@ html, body {
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
-/* Metrics Grid */
 .metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -356,7 +352,6 @@ html, body {
   font-family: 'IBM Plex Mono', monospace;
 }
 
-/* Raster Layer Pills */
 .layer-pills {
   display: flex;
   flex-wrap: wrap;
@@ -397,7 +392,6 @@ html, body {
   border-radius: 50%;
 }
 
-/* Chart Tabs */
 .chart-tabs {
   display: flex;
   gap: 4px;
@@ -451,7 +445,6 @@ html, body {
   display: block;
 }
 
-/* Drought & Flood Meter Boxes */
 .drought-box {
   display: flex;
   flex-direction: column;
@@ -530,7 +523,6 @@ html, body {
   box-shadow: 0 0 8px var(--veg-bright);
 }
 
-/* Alert Feed */
 .alert-feed-list {
   display: flex;
   flex-direction: column;
@@ -593,7 +585,6 @@ html, body {
   color: var(--ink-muted);
 }
 
-/* Studio Box */
 .studio-box {
   display: flex;
   flex-direction: column;
@@ -730,7 +721,6 @@ html, body {
   color: var(--ink-muted);
 }
 
-/* Map Container & HUD */
 #map-wrap {
   position: relative;
   width: 100%;
@@ -738,9 +728,267 @@ html, body {
   background: #020408;
 }
 
-#leaflet-map, #map {
+#leaflet-map, #globe-3d-wrap, #map {
   width: 100%;
   height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#globe-3d-wrap canvas {
+  display: block;
+  outline: none;
+}
+
+.globe-2d-style-popup {
+  position: absolute;
+  top: 70px;
+  left: 24px;
+  min-width: 250px;
+  max-width: 320px;
+  background: rgba(12, 18, 28, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 18px rgba(56, 189, 248, 0.2);
+  z-index: 99999 !important;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: #fff;
+  animation: card-appear 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.globe-popup-close-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--ink-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.2s;
+}
+
+.globe-popup-close-btn:hover {
+  color: #fff;
+}
+
+.globe-popup-title {
+  font-weight: 700;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+  padding-right: 18px;
+}
+
+.globe-popup-row {
+  color: #94A3B8;
+  margin-bottom: 3px;
+  font-size: 11px;
+}
+
+.globe-popup-row strong {
+  color: #fff;
+}
+
+.globe-popup-desc {
+  color: #94A3B8;
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.4;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 6px;
+}
+
+.globe-glassmorphic-card {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  width: 320px;
+  max-width: calc(100vw - 60px);
+  background: rgba(10, 16, 26, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(56, 189, 248, 0.15);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: card-appear 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes card-appear {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.globe-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 14px 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.globe-card-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.globe-card-hazard-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(2, 132, 199, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.globe-card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.globe-card-type {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+
+.globe-card-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+
+.globe-card-close-btn:hover {
+  color: #fff;
+}
+
+.globe-card-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.globe-card-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.globe-card-stat {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.globe-card-stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+.globe-card-stat-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.globe-card-desc {
+  font-size: 11px;
+  color: var(--ink-muted);
+  line-height: 1.45;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px 10px;
+  border-radius: 6px;
+  border-left: 2px solid #38bdf8;
+}
+
+.globe-card-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 10px 14px 14px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-primary-sm {
+  background: linear-gradient(135deg, #0284C7 0%, #0369a1 100%);
+  color: #fff;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btn-primary-sm:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #0284C7 100%);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.btn-secondary-sm {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btn-secondary-sm:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 #map-hud {
@@ -756,7 +1004,7 @@ html, body {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 10.5px;
   color: #fff;
-  z-index: 1000;
+  z-index: 99999 !important;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -792,7 +1040,8 @@ html, body {
   padding: 4px;
   display: flex;
   gap: 4px;
-  z-index: 1000;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
 }
 
 .engine-btn {
@@ -808,6 +1057,7 @@ html, body {
   align-items: center;
   gap: 6px;
   transition: all 0.2s ease;
+  pointer-events: auto !important;
 }
 
 .engine-btn:hover {
@@ -820,7 +1070,6 @@ html, body {
   color: #fff;
 }
 
-/* Hide Default Leaflet Zoom Control */
 .leaflet-control-zoom,
 .leaflet-top.leaflet-left .leaflet-control-zoom {
   display: none !important;
@@ -828,7 +1077,6 @@ html, body {
   pointer-events: none !important;
 }
 
-/* Dedicated Map Controls & Zoom Panel */
 .map-tools-panel {
   position: absolute;
   top: 58px;
@@ -836,7 +1084,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 1000;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
 }
 
 .map-tool-group {
@@ -890,7 +1139,6 @@ html, body {
   margin: 2px 4px;
 }
 
-/* Quick Regions Bars */
 .quick-regions-bar {
   position: absolute;
   bottom: 22px;
@@ -945,7 +1193,6 @@ html, body {
   box-shadow: 0 0 12px rgba(249, 115, 22, 0.50);
 }
 
-/* Dynamic Legend (Positioned cleanly above footer quick-regions bar) */
 #legend {
   position: absolute;
   bottom: 74px;
@@ -979,7 +1226,6 @@ html, body {
   border-radius: 2px;
 }
 
-/* Dark Glassmorphism Popups for Leaflet & Mapbox */
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: rgba(12, 18, 25, 0.96) !important;
@@ -1042,7 +1288,6 @@ html, body {
   color: #fff !important;
 }
 
-/* Modals */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1172,7 +1417,6 @@ html, body {
   opacity: 1;
 }
 
-/* Sidebar Toggle Tab */
 .sidebar-toggle-tab {
   display: flex;
   position: absolute;
@@ -1216,7 +1460,6 @@ html, body {
     inset: 0;
   }
 
-  /* Floating Left Telemetry Panel */
   #sidebar {
     position: absolute;
     top: 10px;
@@ -1317,7 +1560,6 @@ html, body {
   }
 }
 
-/* Portrait Orientation Guard Overlay for Mobile */
 @media screen and (max-width: 950px) and (orientation: portrait) {
   .orientation-overlay {
     display: flex !important;
