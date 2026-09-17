@@ -54,9 +54,6 @@
 
   <div id="app">
     <aside id="sidebar" class="custom-scroll">
-      <button id="sidebar-toggle-tab" class="sidebar-toggle-tab" title="Toggle Telemetry Panel" aria-label="Toggle Panel">
-        <i class="fa-solid fa-chevron-left" id="sidebar-toggle-icon"></i>
-      </button>
       <div>
         <div class="header-top">
           <div class="brand">
@@ -212,6 +209,10 @@
         </div>
         <div id="ndvi-chart-wrap">
           <canvas id="ndvi-chart-canvas"></canvas>
+          <div id="chart-loading-overlay" class="chart-loading-overlay">
+            <div class="chart-spinner"></div>
+            <span class="chart-loading-text">Ingesting Telemetry...</span>
+          </div>
         </div>
       </div>
 
@@ -502,9 +503,6 @@
         </div>
 
         <div class="map-tool-group">
-          <button class="map-tool-btn" id="btn-toggle-dashboard" title="Show / Hide Telemetry Dashboard" aria-label="Toggle Telemetry Dashboard">
-            <i class="fa-solid fa-chart-line" id="icon-toggle-dashboard"></i>
-          </button>
           <button class="map-tool-btn" id="btn-lock-zoom" title="Lock / Unlock Zoom Level" aria-label="Toggle Zoom Lock">
             <i class="fa-solid fa-lock-open" id="icon-lock-zoom"></i>
           </button>

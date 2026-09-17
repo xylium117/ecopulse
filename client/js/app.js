@@ -138,10 +138,8 @@
     btnScanViewport: document.getElementById("btn-scan-viewport"),
     btnFullscreen: document.getElementById("btn-fullscreen"),
     iconFullscreen: document.getElementById("icon-fullscreen"),
-    btnToggleDashboard: document.getElementById("btn-toggle-dashboard"),
     statSeverityBadge: document.getElementById("stat-severity-badge"),
     sidebar: document.getElementById("sidebar"),
-    sidebarToggleTab: document.getElementById("sidebar-toggle-tab"),
     btnForceLandscape: document.getElementById("btn-force-landscape"),
   };
 
@@ -670,7 +668,7 @@
     }
   }
 
-  function switchMapEngine(engineName) {
+  function switchMapEngine(engineName, silent = false) {
     if (engineName === "mapbox") engineName = "globe";
     state.currentEngine = engineName;
     localStorage.setItem("ecopulse_map_engine", engineName);
@@ -713,7 +711,7 @@
         }
       }, 50);
 
-      showToast("Switched to 2D Open Satellite Engine.");
+      if (!silent) showToast("Switched to 2D Mode");
     } else {
       if (leafletEl) {
         leafletEl.style.display = "none";
@@ -747,7 +745,7 @@
         }
       }, 60);
 
-      showToast("Switched to 3D Planetary WebGL Globe.");
+      if (!silent) showToast("Switched to 3D Mode");
     }
   }
 
@@ -930,7 +928,30 @@
     }
   }
 
+  function showChartLoading(text = "Ingesting Telemetry...") {
+    const overlay = document.getElementById("chart-loading-overlay");
+    if (overlay) {
+      const textEl = overlay.querySelector(".chart-loading-text");
+      if (textEl && text) textEl.textContent = text;
+      overlay.style.display = "flex";
+      overlay.style.opacity = "1";
+    }
+  }
+
+  function hideChartLoading() {
+    const overlay = document.getElementById("chart-loading-overlay");
+    if (overlay) {
+      overlay.style.opacity = "0";
+      setTimeout(() => {
+        if (overlay.style.opacity === "0") {
+          overlay.style.display = "none";
+        }
+      }, 200);
+    }
+  }
+
   async function loadNdviTelemetry(centerLon, centerLat) {
+    showChartLoading("Ingesting Telemetry...");
     const delta = 0.65;
     const params = new URLSearchParams({
       lon_min: (centerLon - delta).toFixed(4),
@@ -955,10 +976,12 @@
           : data.carbon_flux_status;
       }
 
+      hideChartLoading();
       drawChart(state.activeMetric);
     } catch (err) {
       console.warn("Telemetry fetch fallback:", err);
       state.timeseriesData = generateFallbackSeries();
+      hideChartLoading();
       drawChart(state.activeMetric);
     }
   }
@@ -997,7 +1020,12 @@
 
   function drawChart(metricKey) {
     const canvas = elements.chartCanvas;
-    if (!canvas || !state.timeseriesData.length) return;
+    if (!canvas) return;
+    if (!state.timeseriesData || !state.timeseriesData.length) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
 
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
@@ -1638,37 +1666,6 @@
       elements.btnFullscreen.addEventListener("click", handleFullscreen);
     }
 
-    function toggleSidebar(forceOpen) {
-      if (!elements.sidebar) return;
-      if (typeof forceOpen === "boolean") {
-        elements.sidebar.classList.toggle("collapsed", !forceOpen);
-      } else {
-        elements.sidebar.classList.toggle("collapsed");
-      }
-      const isCollapsed = elements.sidebar.classList.contains("collapsed");
-      if (elements.sidebarToggleTab) {
-        elements.sidebarToggleTab.setAttribute("title", isCollapsed ? "Expand Telemetry Panel" : "Collapse Telemetry Panel");
-      }
-      if (elements.btnToggleDashboard) {
-        elements.btnToggleDashboard.classList.toggle("active", !isCollapsed);
-      }
-      showToast(isCollapsed ? "Telemetry dashboard collapsed." : "Telemetry dashboard open.");
-      if (state.leafletInstance) {
-        setTimeout(() => state.leafletInstance.invalidateSize(), 300);
-      }
-      if (state.mapboxInstance) {
-        setTimeout(() => state.mapboxInstance.resize(), 300);
-      }
-    }
-
-    if (elements.sidebarToggleTab) {
-      elements.sidebarToggleTab.addEventListener("click", () => toggleSidebar());
-    }
-
-    if (elements.btnToggleDashboard) {
-      elements.btnToggleDashboard.addEventListener("click", () => toggleSidebar());
-    }
-
     if (elements.btnForceLandscape) {
       elements.btnForceLandscape.addEventListener("click", async () => {
         try {
@@ -1824,7 +1821,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    switchMapEngine(state.currentEngine);
+    switchMapEngine(state.currentEngine, true);
     attachEventListeners();
     loadConfig();
     loadAlerts();
