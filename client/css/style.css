@@ -483,9 +483,6 @@ html, body {
   display: block;
 }
 
-/* ==========================================================================
-   Chart Loading Overlay & Radar Spinner (Glassmorphic)
-   ========================================================================== */
 .chart-loading-overlay {
   position: absolute;
   inset: 0;

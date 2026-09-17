@@ -1301,7 +1301,6 @@
     if (statPeakEl) statPeakEl.textContent = `${peak}${cfg.unit}`;
     if (statAnomEl) statAnomEl.textContent = `${anomaliesCount} Event${anomaliesCount === 1 ? '' : 's'} (>2.5σ)`;
 
-    // Draw horizontal gridlines & Y labels
     const gridSteps = 5;
     ctx.font = "11px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "#64748B";
@@ -1326,7 +1325,6 @@
       ctx.fillText(`${formattedVal}${cfg.unit}`, padLeft - 10, yPos);
     }
 
-    // Points spanning the entire width from padLeft to (w - padRight)
     const points = data.map((d, i) => {
       const val = d[key] !== undefined ? d[key] : (d.ndvi || 0);
       const normY = (val - yMin) / (yMax - yMin);
@@ -1337,7 +1335,6 @@
 
     state.modalChartPoints = points;
 
-    // Draw vertical gridlines and X-axis date labels
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     const xStep = Math.max(1, Math.floor(data.length / 7));
@@ -1363,7 +1360,6 @@
       ctx.fillText(lastPoint.date, lastPoint.x, padTop + chartH + 10);
     }
 
-    // Draw Gradient Area Fill
     const grad = ctx.createLinearGradient(0, padTop, 0, padTop + chartH);
     grad.addColorStop(0, cfg.fill);
     grad.addColorStop(1, "rgba(0, 0, 0, 0.0)");
@@ -1376,7 +1372,6 @@
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Draw Main Line
     ctx.beginPath();
     ctx.strokeStyle = cfg.line;
     ctx.lineWidth = 2.8;
@@ -1392,7 +1387,6 @@
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Draw Perfect Circular Data Points
     points.forEach((pt) => {
       const isAnom = pt.anomaly || (pt.z_score && pt.z_score >= 2.5);
 
@@ -1412,7 +1406,6 @@
       ctx.stroke();
     });
 
-    // Draw Hover Cursor and Crosshair
     if (state.modalHoverIndex !== null && points[state.modalHoverIndex]) {
       const hPt = points[state.modalHoverIndex];
 
@@ -2204,7 +2197,6 @@
         tab.classList.add("active");
         state.activeMetric = tab.dataset.metric;
 
-        // Synchronize sidebar tabs
         document.querySelectorAll("#sidebar .chart-tab").forEach((sTab) => {
           sTab.classList.toggle("active", sTab.dataset.metric === state.activeMetric);
         });
