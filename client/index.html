@@ -207,8 +207,12 @@
           <span id="chart-status">Canopy baseline nominal</span>
           <span id="chart-end">2026-01-01</span>
         </div>
-        <div id="ndvi-chart-wrap">
+        <div id="ndvi-chart-wrap" title="Click to expand full timeseries telemetry analysis" tabindex="0" role="button" aria-label="Expand Telemetry Chart">
           <canvas id="ndvi-chart-canvas"></canvas>
+          <div class="chart-click-hint">
+            <i class="fa-solid fa-up-right-and-down-left-from-center" style="font-size: 8px;"></i>
+            <span>EXPAND</span>
+          </div>
           <div id="chart-loading-overlay" class="chart-loading-overlay">
             <div class="chart-spinner"></div>
             <span class="chart-loading-text">Ingesting Telemetry...</span>
@@ -808,6 +812,79 @@
       </div>
       <div class="modal-footer">
         <button class="btn-primary" id="btn-close-explainer-done">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Expanded Full-Width Timeseries Telemetry Analyzer -->
+  <div id="modal-chart-expanded" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title">
+    <div class="modal-dialog modal-dialog-chart">
+      <div class="modal-header modal-header-chart">
+        <div class="chart-modal-brand">
+          <div class="chart-modal-title-row">
+            <span class="pulse-indicator"></span>
+            <h3 id="chart-modal-title" class="modal-title">Planetary Telemetry Timeseries Analyzer</h3>
+            <span class="chart-modal-badge" id="modal-chart-region-badge">NEPAL REGIONAL CORRIDOR</span>
+          </div>
+          <span class="chart-modal-subtitle">Full-Spectrum Spatio-Temporal Sensor Ingest • Sentinel-1 SAR &amp; Sentinel-2 MSI Constellation</span>
+        </div>
+        <div class="chart-modal-controls">
+          <div class="chart-tabs" id="modal-chart-tabs-flood">
+            <button class="chart-tab active" data-metric="rainfall_mm" style="color: #60A5FA;">RAINFALL</button>
+            <button class="chart-tab" data-metric="soil_saturation" style="color: #34D399;">SATURATION</button>
+            <button class="chart-tab" data-metric="mndwi" style="color: #67E8F9;">MNDWI</button>
+            <button class="chart-tab" data-metric="flood_risk_ffsi" style="color: #FDBA74;">FFSI RISK</button>
+          </div>
+          <div class="chart-tabs" id="modal-chart-tabs-wildfire" style="display: none;">
+            <button class="chart-tab active" data-metric="ndvi">NDVI</button>
+            <button class="chart-tab" data-metric="ndwi">NDWI</button>
+            <button class="chart-tab" data-metric="carbon_flux">CO₂ FLUX</button>
+          </div>
+          <button class="btn-icon" id="btn-close-chart-modal" aria-label="Close Expanded Chart" style="font-size: 15px;">✕</button>
+        </div>
+      </div>
+
+      <div class="chart-modal-meta-strip">
+        <div class="chart-meta-group">
+          <span class="meta-label">Temporal Window:</span>
+          <span class="meta-val" id="modal-chart-dates">2025-01-01 → 2026-01-01</span>
+        </div>
+        <div class="chart-meta-group">
+          <span class="meta-label">Sensor Constellation:</span>
+          <span class="meta-val" id="modal-chart-sensor" style="color: var(--veg-bright);">Sentinel-1 SAR + Sentinel-2 MSI</span>
+        </div>
+        <div class="chart-meta-group">
+          <span class="meta-label">Telemetry Ingest:</span>
+          <span class="meta-val" id="modal-chart-status" style="color: #67E8F9;">Radar &amp; Optical Ingest Synchronized</span>
+        </div>
+        <div class="chart-meta-group">
+          <span class="meta-label">Sampling:</span>
+          <span class="meta-val" id="modal-chart-point-count" style="color: #fff;">28 Temporal Epochs</span>
+        </div>
+      </div>
+
+      <div id="modal-chart-wrap" class="modal-chart-wrap">
+        <canvas id="modal-chart-canvas"></canvas>
+        <div id="modal-chart-tooltip" class="modal-chart-tooltip" style="display: none;"></div>
+      </div>
+
+      <div class="chart-modal-footer-stats">
+        <div class="stat-pill">
+          <span class="stat-pill-label">Selected Metric</span>
+          <span class="stat-pill-val" id="modal-stat-metric-name">Accumulated Rainfall</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-label">Mean Baseline</span>
+          <span class="stat-pill-val" id="modal-stat-mean">48.2 mm</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-label">Peak Value</span>
+          <span class="stat-pill-val" id="modal-stat-peak" style="color: #F87171;">238.4 mm</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-pill-label">Extreme Events</span>
+          <span class="stat-pill-val" id="modal-stat-anomalies" style="color: #FDBA74;">4 Events (&gt;2.5σ)</span>
+        </div>
       </div>
     </div>
   </div>

@@ -437,6 +437,41 @@ html, body {
   border-radius: var(--radius-sm);
   overflow: hidden;
   position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#ndvi-chart-wrap:hover {
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.20);
+}
+
+.chart-click-hint {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(8, 14, 23, 0.70);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 2px 5px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  letter-spacing: 0.4px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 5;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+#ndvi-chart-wrap:hover .chart-click-hint {
+  color: var(--veg-bright);
+  border-color: rgba(52, 211, 153, 0.35);
 }
 
 #ndvi-chart-canvas {
@@ -1371,6 +1406,168 @@ html, body {
 
 .modal-dialog-lg {
   max-width: 780px;
+}
+
+.modal-dialog-chart {
+  width: 94vw;
+  max-width: 1320px;
+  height: 84vh;
+  max-height: 760px;
+  background: #09111c;
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.90), 0 0 35px rgba(16, 185, 129, 0.12);
+  box-sizing: border-box;
+}
+
+.modal-header-chart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chart-modal-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chart-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-modal-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--veg-bright);
+  border: 1px solid rgba(52, 211, 153, 0.30);
+  letter-spacing: 0.5px;
+}
+
+.chart-modal-subtitle {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.chart-modal-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-modal-meta-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 14px;
+  background: rgba(13, 22, 34, 0.70);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+}
+
+.chart-meta-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-label {
+  color: var(--ink-muted);
+}
+
+.meta-val {
+  color: #fff;
+  font-weight: 500;
+}
+
+.modal-chart-wrap {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  min-height: 220px;
+  background: rgba(4, 9, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+#modal-chart-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  cursor: crosshair;
+}
+
+.modal-chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(9, 17, 28, 0.94);
+  border: 1px solid var(--veg-bright);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 12px rgba(52, 211, 153, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: #fff;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.chart-modal-footer-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-pill {
+  background: rgba(13, 22, 34, 0.70);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-pill-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.stat-pill-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
 }
 
 .modal-header {

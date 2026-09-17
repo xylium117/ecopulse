@@ -30,6 +30,8 @@
     currentFfsi: 84.2,
     floodThreshold: 60,
     isZoomLocked: false,
+    modalChartPoints: [],
+    modalHoverIndex: null,
   };
 
   const elements = {
@@ -56,6 +58,13 @@
 
     chartCanvas: document.getElementById("ndvi-chart-canvas"),
     chartWrap: document.getElementById("ndvi-chart-wrap"),
+    modalChartExpanded: document.getElementById("modal-chart-expanded"),
+    btnCloseChartModal: document.getElementById("btn-close-chart-modal"),
+    modalChartCanvas: document.getElementById("modal-chart-canvas"),
+    modalChartWrap: document.getElementById("modal-chart-wrap"),
+    modalChartTooltip: document.getElementById("modal-chart-tooltip"),
+    modalChartTabsFlood: document.getElementById("modal-chart-tabs-flood"),
+    modalChartTabsWildfire: document.getElementById("modal-chart-tabs-wildfire"),
     chartStart: document.getElementById("chart-start"),
     chartEnd: document.getElementById("chart-end"),
     chartStatus: document.getElementById("chart-status"),
@@ -827,8 +836,22 @@
       });
     }
 
+    const modalFloodTabs = document.getElementById("modal-chart-tabs-flood");
+    const modalWildfireTabs = document.getElementById("modal-chart-tabs-wildfire");
+    if (modalFloodTabs && modalWildfireTabs) {
+      modalFloodTabs.style.display = hazard === "flood" ? "flex" : "none";
+      modalWildfireTabs.style.display = hazard === "wildfire" ? "flex" : "none";
+      const targetModalTabs = hazard === "flood" ? modalFloodTabs : modalWildfireTabs;
+      targetModalTabs.querySelectorAll(".chart-tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.metric === state.activeMetric);
+      });
+    }
+
     updateActiveRasterLayer();
     drawChart(state.activeMetric);
+    if (elements.modalChartExpanded && elements.modalChartExpanded.classList.contains("open")) {
+      drawModalChart(state.activeMetric);
+    }
     fetchRealTimeMetrics();
     loadAlerts();
     showToast(`Switched mode to: ${hazard === "wildfire" ? "Wildfire & Biomass Engine" : "Flash Flood & Inundation Engine"}`);
@@ -839,35 +862,44 @@
   }
 
   function getCurrentViewportBounds() {
+    let lon_min, lat_min, lon_max, lat_max;
     if (state.currentEngine === "leaflet" && state.leafletInstance) {
-      const b = state.leafletInstance.getBounds();
-      return {
-        lon_min: b.getWest(),
-        lat_min: b.getSouth(),
-        lon_max: b.getEast(),
-        lat_max: b.getNorth(),
-      };
+      try {
+        const b = state.leafletInstance.getBounds();
+        if (b && b.isValid && b.isValid()) {
+          lon_min = b.getWest();
+          lat_min = b.getSouth();
+          lon_max = b.getEast();
+          lat_max = b.getNorth();
+        }
+      } catch (err) {
+        console.warn("Leaflet bounds not yet computed:", err);
+      }
     } else if (state.globeInstance) {
       const pov = state.globeInstance.pointOfView();
       if (pov) {
         const alt = pov.altitude || 1.25;
         const span = Math.min(30, Math.max(1.0, alt * 9.0));
-        return {
-          lon_min: pov.lng - span,
-          lat_min: Math.max(-85, pov.lat - span),
-          lon_max: pov.lng + span,
-          lat_max: Math.min(85, pov.lat + span),
-        };
+        lon_min = pov.lng - span;
+        lat_min = Math.max(-85, pov.lat - span);
+        lon_max = pov.lng + span;
+        lat_max = Math.min(85, pov.lat + span);
       }
     }
-    const c = state.currentRegion.center;
-    const d = 1.5;
-    return {
-      lon_min: c[0] - d,
-      lat_min: c[1] - d,
-      lon_max: c[0] + d,
-      lat_max: c[1] + d,
-    };
+
+    const c = (state.currentRegion && state.currentRegion.center) ? state.currentRegion.center : [85.65, 27.22];
+    const d = 0.65;
+
+    if (lon_min === undefined || lon_max === undefined || Math.abs(lon_max - lon_min) < 0.05) {
+      lon_min = c[0] - d;
+      lon_max = c[0] + d;
+    }
+    if (lat_min === undefined || lat_max === undefined || Math.abs(lat_max - lat_min) < 0.05) {
+      lat_min = c[1] - d;
+      lat_max = c[1] + d;
+    }
+
+    return { lon_min, lat_min, lon_max, lat_max };
   }
 
   async function loadConfig() {
@@ -978,11 +1010,25 @@
 
       hideChartLoading();
       drawChart(state.activeMetric);
+      if (elements.modalChartExpanded && elements.modalChartExpanded.classList.contains("open")) {
+        const modalDates = document.getElementById("modal-chart-dates");
+        if (modalDates && state.timeseriesData && state.timeseriesData.length) {
+          modalDates.textContent = `${state.timeseriesData[0].date} → ${state.timeseriesData[state.timeseriesData.length - 1].date}`;
+        }
+        const modalPointCount = document.getElementById("modal-chart-point-count");
+        if (modalPointCount && state.timeseriesData) {
+          modalPointCount.textContent = `${state.timeseriesData.length} Temporal Epochs`;
+        }
+        drawModalChart(state.activeMetric);
+      }
     } catch (err) {
       console.warn("Telemetry fetch fallback:", err);
       state.timeseriesData = generateFallbackSeries();
       hideChartLoading();
       drawChart(state.activeMetric);
+      if (elements.modalChartExpanded && elements.modalChartExpanded.classList.contains("open")) {
+        drawModalChart(state.activeMetric);
+      }
     }
   }
 
@@ -1122,6 +1168,324 @@
         ctx.fillStyle = dotColor;
         ctx.fill();
       }
+    });
+  }
+
+  function openChartModal() {
+    const modal = elements.modalChartExpanded || document.getElementById("modal-chart-expanded");
+    if (!modal) return;
+
+    const regionBadge = document.getElementById("modal-chart-region-badge");
+    if (regionBadge && state.currentRegion) {
+      regionBadge.textContent = (state.currentRegion.name || "Regional Target").toUpperCase();
+    }
+
+    const modalSensor = document.getElementById("modal-chart-sensor");
+    if (modalSensor && state.currentRegion) {
+      modalSensor.textContent = state.currentRegion.sensor || "Sentinel Constellation";
+    }
+
+    const modalDates = document.getElementById("modal-chart-dates");
+    if (modalDates && state.timeseriesData && state.timeseriesData.length) {
+      modalDates.textContent = `${state.timeseriesData[0].date} → ${state.timeseriesData[state.timeseriesData.length - 1].date}`;
+    }
+
+    const modalPointCount = document.getElementById("modal-chart-point-count");
+    if (modalPointCount && state.timeseriesData) {
+      modalPointCount.textContent = `${state.timeseriesData.length} Temporal Epochs`;
+    }
+
+    const floodTabs = document.getElementById("modal-chart-tabs-flood");
+    const wildfireTabs = document.getElementById("modal-chart-tabs-wildfire");
+    if (floodTabs && wildfireTabs) {
+      if (state.activeHazard === "flood") {
+        floodTabs.style.display = "flex";
+        wildfireTabs.style.display = "none";
+        floodTabs.querySelectorAll(".chart-tab").forEach((t) => {
+          t.classList.toggle("active", t.dataset.metric === state.activeMetric);
+        });
+      } else {
+        floodTabs.style.display = "none";
+        wildfireTabs.style.display = "flex";
+        wildfireTabs.querySelectorAll(".chart-tab").forEach((t) => {
+          t.classList.toggle("active", t.dataset.metric === state.activeMetric);
+        });
+      }
+    }
+
+    modal.classList.add("open");
+
+    setTimeout(() => {
+      drawModalChart(state.activeMetric);
+    }, 50);
+  }
+
+  function closeChartModal() {
+    const modal = elements.modalChartExpanded || document.getElementById("modal-chart-expanded");
+    if (modal) {
+      modal.classList.remove("open");
+    }
+    const tooltip = document.getElementById("modal-chart-tooltip");
+    if (tooltip) tooltip.style.display = "none";
+    state.modalHoverIndex = null;
+  }
+
+  function drawModalChart(metricKey) {
+    const canvas = document.getElementById("modal-chart-canvas");
+    if (!canvas) return;
+
+    const data = state.timeseriesData;
+    if (!data || !data.length) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    if (w <= 20 || h <= 20) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    const padLeft = 70;
+    const padRight = 35;
+    const padTop = 35;
+    const padBottom = 45;
+
+    const chartW = w - padLeft - padRight;
+    const chartH = h - padTop - padBottom;
+    if (chartW <= 0 || chartH <= 0) return;
+
+    const key = metricKey || state.activeMetric || (state.activeHazard === "flood" ? "rainfall_mm" : "ndvi");
+    const values = data.map((p) => (p[key] !== undefined ? p[key] : (p.ndvi || 0)));
+
+    let minVal = Math.min(...values);
+    let maxVal = Math.max(...values);
+    if (minVal === maxVal) {
+      minVal = minVal * 0.85;
+      maxVal = maxVal * 1.15;
+    }
+    const span = maxVal - minVal;
+    const yMin = minVal - span * 0.08;
+    const yMax = maxVal + span * 0.10;
+
+    const colorMap = {
+      ndvi: { line: "#34D399", fill: "rgba(52, 211, 153, 0.22)", name: "Normalized Difference Vegetation Index (NDVI)", unit: "" },
+      ndwi: { line: "#38BDF8", fill: "rgba(56, 189, 248, 0.22)", name: "Normalized Difference Water Index (NDWI)", unit: "" },
+      carbon_flux: { line: "#F59E0B", fill: "rgba(245, 158, 11, 0.22)", name: "Canopy CO₂ Flux Estimate", unit: " tC/ha" },
+      rainfall_mm: { line: "#60A5FA", fill: "rgba(96, 165, 250, 0.24)", name: "Accumulated Rainfall Pre-Event", unit: " mm" },
+      soil_saturation: { line: "#34D399", fill: "rgba(52, 211, 153, 0.24)", name: "Soil Moisture Saturation Index", unit: "%" },
+      mndwi: { line: "#67E8F9", fill: "rgba(103, 232, 249, 0.24)", name: "Modified Normalized Difference Water Index (MNDWI)", unit: "" },
+      flood_risk_ffsi: { line: "#F97316", fill: "rgba(249, 115, 22, 0.24)", name: "Flash Flood Susceptibility Index (FFSI)", unit: "%" },
+    };
+
+    const cfg = colorMap[key] || { line: "#34D399", fill: "rgba(52, 211, 153, 0.20)", name: key.toUpperCase(), unit: "" };
+
+    const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+    const peak = maxVal.toFixed(1);
+    const anomaliesCount = data.filter((d) => d.anomaly || d.z_score >= 2.5).length;
+
+    const statNameEl = document.getElementById("modal-stat-metric-name");
+    const statMeanEl = document.getElementById("modal-stat-mean");
+    const statPeakEl = document.getElementById("modal-stat-peak");
+    const statAnomEl = document.getElementById("modal-stat-anomalies");
+
+    if (statNameEl) statNameEl.textContent = cfg.name;
+    if (statMeanEl) statMeanEl.textContent = `${avg}${cfg.unit}`;
+    if (statPeakEl) statPeakEl.textContent = `${peak}${cfg.unit}`;
+    if (statAnomEl) statAnomEl.textContent = `${anomaliesCount} Event${anomaliesCount === 1 ? '' : 's'} (>2.5σ)`;
+
+    // Draw horizontal gridlines & Y labels
+    const gridSteps = 5;
+    ctx.font = "11px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#64748B";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    for (let step = 0; step <= gridSteps; step++) {
+      const ratio = step / gridSteps;
+      const yPos = padTop + chartH * (1 - ratio);
+      const val = yMin + (yMax - yMin) * ratio;
+
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(padLeft, yPos);
+      ctx.lineTo(w - padRight, yPos);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const formattedVal = Math.abs(val) >= 10 ? val.toFixed(1) : val.toFixed(2);
+      ctx.fillText(`${formattedVal}${cfg.unit}`, padLeft - 10, yPos);
+    }
+
+    // Points spanning the entire width from padLeft to (w - padRight)
+    const points = data.map((d, i) => {
+      const val = d[key] !== undefined ? d[key] : (d.ndvi || 0);
+      const normY = (val - yMin) / (yMax - yMin);
+      const x = padLeft + (i / (data.length - 1 || 1)) * chartW;
+      const y = padTop + chartH * (1 - normY);
+      return { x, y, val, date: d.date, anomaly: d.anomaly, z_score: d.z_score, raw: d };
+    });
+
+    state.modalChartPoints = points;
+
+    // Draw vertical gridlines and X-axis date labels
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    const xStep = Math.max(1, Math.floor(data.length / 7));
+
+    for (let i = 0; i < data.length; i += xStep) {
+      const pt = points[i];
+      if (!pt) continue;
+
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.moveTo(pt.x, padTop);
+      ctx.lineTo(pt.x, padTop + chartH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#94A3B8";
+      ctx.fillText(pt.date, pt.x, padTop + chartH + 10);
+    }
+    const lastPoint = points[points.length - 1];
+    if (lastPoint && (points.length - 1) % xStep !== 0) {
+      ctx.fillText(lastPoint.date, lastPoint.x, padTop + chartH + 10);
+    }
+
+    // Draw Gradient Area Fill
+    const grad = ctx.createLinearGradient(0, padTop, 0, padTop + chartH);
+    grad.addColorStop(0, cfg.fill);
+    grad.addColorStop(1, "rgba(0, 0, 0, 0.0)");
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, padTop + chartH);
+    points.forEach((pt) => ctx.lineTo(pt.x, pt.y));
+    ctx.lineTo(points[points.length - 1].x, padTop + chartH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Draw Main Line
+    ctx.beginPath();
+    ctx.strokeStyle = cfg.line;
+    ctx.lineWidth = 2.8;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.shadowColor = cfg.line;
+    ctx.shadowBlur = 10;
+
+    points.forEach((pt, idx) => {
+      if (idx === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Draw Perfect Circular Data Points
+    points.forEach((pt) => {
+      const isAnom = pt.anomaly || (pt.z_score && pt.z_score >= 2.5);
+
+      if (isAnom) {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 8.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(239, 68, 68, 0.28)";
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, isAnom ? 5.5 : 4, 0, Math.PI * 2);
+      ctx.fillStyle = isAnom ? "#EF4444" : cfg.line;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#09111c";
+      ctx.stroke();
+    });
+
+    // Draw Hover Cursor and Crosshair
+    if (state.modalHoverIndex !== null && points[state.modalHoverIndex]) {
+      const hPt = points[state.modalHoverIndex];
+
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.40)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.moveTo(hPt.x, padTop);
+      ctx.lineTo(hPt.x, padTop + chartH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.arc(hPt.x, hPt.y, 7.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = cfg.line;
+      ctx.stroke();
+    }
+  }
+
+  function attachModalChartEvents() {
+    const canvas = document.getElementById("modal-chart-canvas");
+    const tooltip = document.getElementById("modal-chart-tooltip");
+    if (!canvas || !tooltip) return;
+
+    canvas.addEventListener("mousemove", (e) => {
+      const pts = state.modalChartPoints;
+      if (!pts || !pts.length) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+
+      let closestIdx = 0;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < pts.length; i++) {
+        const dist = Math.abs(pts[i].x - mouseX);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestIdx = i;
+        }
+      }
+
+      state.modalHoverIndex = closestIdx;
+      drawModalChart(state.activeMetric);
+
+      const targetPt = pts[closestIdx];
+      const key = state.activeMetric || (state.activeHazard === "flood" ? "rainfall_mm" : "ndvi");
+      const formattedVal = Math.abs(targetPt.val) >= 10 ? targetPt.val.toFixed(1) : targetPt.val.toFixed(3);
+      const isAnom = targetPt.anomaly || (targetPt.z_score && targetPt.z_score >= 2.5);
+
+      tooltip.innerHTML = `
+        <div style="font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 3px; margin-bottom: 3px;">
+          ${targetPt.date}
+        </div>
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <span style="color:var(--ink-muted);">${key.toUpperCase()}:</span>
+          <span style="color:var(--veg-bright); font-weight:600;">${formattedVal}</span>
+        </div>
+        ${isAnom ? `<div style="color:#F87171; font-weight:600; font-size:10px;">⚠️ Satellite Anomaly (z=${targetPt.z_score || '3.2'})</div>` : ''}
+      `;
+
+      tooltip.style.display = "flex";
+      tooltip.style.left = `${targetPt.x}px`;
+      tooltip.style.top = `${Math.max(25, targetPt.y - 15)}px`;
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+      state.modalHoverIndex = null;
+      if (tooltip) tooltip.style.display = "none";
+      drawModalChart(state.activeMetric);
     });
   }
 
@@ -1809,12 +2173,66 @@
       });
     }
 
+    if (elements.chartWrap) {
+      elements.chartWrap.addEventListener("click", openChartModal);
+      elements.chartWrap.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openChartModal();
+        }
+      });
+    }
+
+    if (elements.btnCloseChartModal) {
+      elements.btnCloseChartModal.addEventListener("click", closeChartModal);
+    }
+
+    if (elements.modalChartExpanded) {
+      elements.modalChartExpanded.addEventListener("click", (e) => {
+        if (e.target === elements.modalChartExpanded) {
+          closeChartModal();
+        }
+      });
+    }
+
+    document.querySelectorAll("#modal-chart-expanded .chart-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const parent = tab.closest(".chart-tabs");
+        if (parent) {
+          parent.querySelectorAll(".chart-tab").forEach((t) => t.classList.remove("active"));
+        }
+        tab.classList.add("active");
+        state.activeMetric = tab.dataset.metric;
+
+        // Synchronize sidebar tabs
+        document.querySelectorAll("#sidebar .chart-tab").forEach((sTab) => {
+          sTab.classList.toggle("active", sTab.dataset.metric === state.activeMetric);
+        });
+
+        drawChart(state.activeMetric);
+        drawModalChart(state.activeMetric);
+      });
+    });
+
+    attachModalChartEvents();
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeChartModal();
+        if (elements.modalAiExplainer) elements.modalAiExplainer.classList.remove("open");
+        if (elements.modalSettings) elements.modalSettings.classList.remove("open");
+      }
+    });
+
     if (elements.btnExport) {
       elements.btnExport.addEventListener("click", exportReport);
     }
 
     window.addEventListener("resize", () => {
       drawChart(state.activeMetric);
+      if (elements.modalChartExpanded && elements.modalChartExpanded.classList.contains("open")) {
+        drawModalChart(state.activeMetric);
+      }
       if (state.leafletInstance) state.leafletInstance.invalidateSize();
       if (state.globeInstance) resizeGlobe();
     });
