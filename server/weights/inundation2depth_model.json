@@ -1,0 +1,28 @@
+{
+  "model_name": "Inundation2Depth Hydro-Kinematic 2D Water Depth Predictor",
+  "benchmark_dataset": "Inundation2Depth Benchmark (SAR + HAND Elevation Hydrodynamics)",
+  "trained_at": "2026-09-17T14:35:57.418951+00:00",
+  "input_features": [
+    "InundationExtentPct",
+    "SARBackscatterDropDB",
+    "TopographicWetnessIndex",
+    "HeightAboveNearestDrainageM",
+    "SlopeDegrees",
+    "DeforestationPct",
+    "PrecipitationIntensityMM"
+  ],
+  "intercept": -0.332505,
+  "feature_weights": {
+    "InundationExtentPct": 0.018439,
+    "SARBackscatterDropDB": 0.066879,
+    "TopographicWetnessIndex": 0.052868,
+    "HeightAboveNearestDrainageM": -0.077977,
+    "SlopeDegrees": -0.005786,
+    "DeforestationPct": 0.00646,
+    "PrecipitationIntensityMM": 0.004376
+  },
+  "max_calibrated_depth_m": 5.5,
+  "r2_score": 0.9843,
+  "rmse_meters": 0.0951,
+  "status": "trained_active"
+}

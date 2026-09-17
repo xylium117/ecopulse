@@ -2,7 +2,7 @@
    ECOPULSE PLANETARY MULTI-SENSOR HYDROLOGICAL MODEL vs. 7 TRADITIONAL HYDROLOGICAL MODELS
                       COMPREHENSIVE TELEMETRY BENCHMARK & TEST REPORT
 =========================================================================================================
-Assessed At       : 2026-09-17T11:02:13.155426+00:00 (UTC)
+Assessed At       : 2026-09-17T14:36:38.698301+00:00 (UTC)
 Evaluation Suite  : Remote Sensing Multi-Sensor ML vs. Classic Civil/Hydraulic Formulations
 Catchments Tested : 210 Catchment Topographies Across Global Ecoregions
 Platform          : Python 3.14.7 | Zero-Leak Fast Ingestion Pipeline
@@ -50,7 +50,7 @@ Platform          : Python 3.14.7 | Zero-Leak Fast Ingestion Pipeline
 ---------------------------------------------------------------------------------------------------------
 Model Architecture                   | RMSE     | MAE      | R^2      | Pearson r  | F1-Score | CSI    | FAR   
 ---------------------------------------------------------------------------------------------------------
-EcoPulse Spatio-Temporal ML          | 35.66    | 30.35    | -0.9689  | 0.6956     | 0.889    | 0.800  | 0.000 
+EcoPulse Spatio-Temporal ML          | 29.94    | 24.77    | -0.3877  | 0.7558     | 0.889    | 0.800  | 0.000 
 USDA SCS-CN Empirical (NEH-4)        | 11.18    | 9.34     | 0.8066   | 0.9745     | 0.909    | 0.833  | 0.167 
 TOPMODEL Topographic Wetness         | 12.91    | 11.79    | 0.7418   | 0.9659     | 0.769    | 0.625  | 0.375 
 Green-Ampt Physical Infiltration     | 14.74    | 12.69    | 0.6638   | 0.9735     | 0.909    | 0.833  | 0.167 
@@ -67,33 +67,33 @@ with optical MNDWI and topographic wetness indexing, filtering out static table 
 ---------------------------------------------------------------------------------------------------------
 Model Architecture                   | Mean Latency | Median P50  | P95 Latency  | P99 Latency  | Throughput (QPS)
 ---------------------------------------------------------------------------------------------------------
-EcoPulse Spatio-Temporal ML          | 0.2230  ms | 0.2369 ms | 0.5034  ms | 1.0723  ms | 4483.6          
-USDA SCS-CN Empirical (NEH-4)        | 0.0199  ms | 0.0170 ms | 0.0327  ms | 0.0794  ms | 50370.6         
-TOPMODEL Topographic Wetness         | 0.0174  ms | 0.0138 ms | 0.0285  ms | 0.0744  ms | 57474.4         
-Green-Ampt Physical Infiltration     | 0.0252  ms | 0.0202 ms | 0.0418  ms | 0.1556  ms | 39621.1         
-Snyder Synthetic Unit Hydrograph     | 0.0149  ms | 0.0117 ms | 0.0256  ms | 0.1131  ms | 67256.0         
-Muskingum Flood Wave Routing         | 0.0297  ms | 0.0258 ms | 0.0501  ms | 0.0945  ms | 33725.7         
-Rational Method (ASCE Peak)          | 0.0145  ms | 0.0126 ms | 0.0239  ms | 0.0966  ms | 68760.0         
-Linear Reservoir Lumped Hydrograph   | 0.0292  ms | 0.0257 ms | 0.0494  ms | 0.0672  ms | 34207.5         
+EcoPulse Spatio-Temporal ML          | 0.3976  ms | 0.3758 ms | 0.8297  ms | 2.5761  ms | 2514.9          
+USDA SCS-CN Empirical (NEH-4)        | 0.0301  ms | 0.0202 ms | 0.0614  ms | 0.2217  ms | 33211.6         
+TOPMODEL Topographic Wetness         | 0.0234  ms | 0.0155 ms | 0.0762  ms | 0.1486  ms | 42789.9         
+Green-Ampt Physical Infiltration     | 0.0325  ms | 0.0224 ms | 0.0900  ms | 0.1861  ms | 30762.0         
+Snyder Synthetic Unit Hydrograph     | 0.0189  ms | 0.0132 ms | 0.0298  ms | 0.1346  ms | 52795.7         
+Muskingum Flood Wave Routing         | 0.0415  ms | 0.0290 ms | 0.0680  ms | 0.2419  ms | 24102.7         
+Rational Method (ASCE Peak)          | 0.0191  ms | 0.0140 ms | 0.0288  ms | 0.1169  ms | 52232.3         
+Linear Reservoir Lumped Hydrograph   | 0.0416  ms | 0.0290 ms | 0.0625  ms | 0.2280  ms | 24012.3         
 ---------------------------------------------------------------------------------------------------------
-Peak Memory Allocation : 210.03 KB across 210 full catchment evaluations
-Memory Per Assessment  : 1075.3 Bytes / query (Zero-leak runtime)
+Peak Memory Allocation : 208.46 KB across 210 full catchment evaluations
+Memory Per Assessment  : 1067.3 Bytes / query (Zero-leak runtime)
 
 ---------------------------------------------------------------------------------------------------------
  4. REAL-WORLD REGIONAL TELEMETRY DIFFERENCE TABLE
 ---------------------------------------------------------------------------------------------------------
 Target Catchment Basin                 | GroundTruth | EcoPulse FFSI | SCS-CN FFSI | TOPMODEL   | EcoPulse Class        
 ---------------------------------------------------------------------------------------------------------
-Nepal & Tibet Mountain Basin (Koshi /  | 86.5        | 53.2          | 87.3        | 100.0      | Flash Flood Watch     
-India Indo-Gangetic Corridor (Bihar Fl | 79.2        | 48.9          | 76.3        | 91.2       | Flash Flood Watch     
-Valencia DANA Flash Flood Basin, Spain | 81.4        | 36.2          | 77.7        | 99.5       | Nominal Drainage      
-Padma & Meghna Delta, Bangladesh       | 84.0        | 33.8          | 75.4        | 95.5       | Nominal Drainage      
-Derna Wadi Flash Flood Basin, Libya    | 77.8        | 12.7          | 58.0        | 74.4       | Nominal Drainage      
-Amazon Clear-Cut Deforestation Arc (BR | 52.0        | 23.0          | 40.8        | 64.1       | Nominal Drainage      
-Borneo Peatland & Drainage Basin, Indo | 48.5        | 21.6          | 32.0        | 53.8       | Nominal Drainage      
-Sierra Nevada Fire Scar Catchment, Cal | 38.0        | 20.7          | 23.8        | 44.3       | Nominal Drainage      
-Sahel & Lake Chad Semi-Arid Basin, Afr | 24.5        | 19.9          | 12.3        | 39.3       | Nominal Drainage      
-Sahara Arid Basin (Crusted Dry Wadi),  | 14.0        | 12.4          | 10.5        | 34.9       | Nominal Drainage      
+Nepal & Tibet Mountain Basin (Koshi /  | 86.5        | 66.0          | 87.3        | 100.0      | Flash Flood Emergency 
+India Indo-Gangetic Corridor (Bihar Fl | 79.2        | 61.2          | 76.3        | 91.2       | Flash Flood Emergency 
+Valencia DANA Flash Flood Basin, Spain | 81.4        | 53.4          | 77.7        | 99.5       | Flash Flood Emergency 
+Padma & Meghna Delta, Bangladesh       | 84.0        | 57.2          | 75.4        | 95.5       | Flash Flood Emergency 
+Derna Wadi Flash Flood Basin, Libya    | 77.8        | 8.7           | 58.0        | 74.4       | Nominal Drainage      
+Amazon Clear-Cut Deforestation Arc (BR | 52.0        | 24.0          | 40.8        | 64.1       | Nominal Drainage      
+Borneo Peatland & Drainage Basin, Indo | 48.5        | 21.0          | 32.0        | 53.8       | Nominal Drainage      
+Sierra Nevada Fire Scar Catchment, Cal | 38.0        | 19.8          | 23.8        | 44.3       | Nominal Drainage      
+Sahel & Lake Chad Semi-Arid Basin, Afr | 24.5        | 17.7          | 12.3        | 39.3       | Nominal Drainage      
+Sahara Arid Basin (Crusted Dry Wadi),  | 14.0        | 9.2           | 10.5        | 34.9       | Nominal Drainage      
 ---------------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------------
@@ -114,21 +114,21 @@ Sahara Arid Basin (Crusted Dry Wadi),  | 14.0        | 12.4          | 10.5     
        interactive satellite map panning and 60 FPS WebGL tile rendering.
 
 =========================================================================================================
- 6. FINAL COMPREHENSIVE HYDROLOGICAL MODEL LEADERBOARD & RANKINGS
+ 6. COMPREHENSIVE HYDROLOGICAL MODEL LEADERBOARD & RANKINGS
 =========================================================================================================
 Composite Ranking Criteria: Telemetry Dimensions (25%), F1 Detection (25%), CSI Threat Score (20%),
 False Alarm Suppression (15%), Real-Time Compute Throughput (15%).
 
 Rank   | Model Architecture                   | Telemetry  | F1-Score  | CSI     | FAR     | Latency     | Score / 100
 ---------------------------------------------------------------------------------------------------------
-#1     | EcoPulse Spatio-Temporal ML          | 6 Dims    | 0.889     | 0.800   | 0.000   | 0.2230 ms | 93.2       
-#2     | Snyder Synthetic Unit Hydrograph     | 4 Dims    | 0.889     | 0.800   | 0.000   | 0.0149 ms | 84.9       
-#3     | Green-Ampt Physical Infiltration     | 4 Dims    | 0.909     | 0.833   | 0.167   | 0.0252 ms | 83.5       
-#4     | USDA SCS-CN Empirical (NEH-4)        | 3 Dims    | 0.909     | 0.833   | 0.167   | 0.0199 ms | 79.4       
-#5     | TOPMODEL Topographic Wetness         | 4 Dims    | 0.769     | 0.625   | 0.375   | 0.0174 ms | 72.8       
-#6     | Rational Method (ASCE Peak)          | 2 Dims    | 0.571     | 0.400   | 0.000   | 0.0145 ms | 60.6       
-#7     | Muskingum Flood Wave Routing         | 3 Dims    | 0.000     | 0.000   | 0.000   | 0.0297 ms | 42.5       
-#8     | Linear Reservoir Lumped Hydrograph   | 2 Dims    | 0.000     | 0.000   | 0.000   | 0.0292 ms | 38.3       
+#1     | EcoPulse Spatio-Temporal ML          | 6 Dims    | 0.889     | 0.800   | 0.000   | 0.3976 ms | 93.2       
+#2     | Snyder Synthetic Unit Hydrograph     | 4 Dims    | 0.889     | 0.800   | 0.000   | 0.0189 ms | 84.9       
+#3     | Green-Ampt Physical Infiltration     | 4 Dims    | 0.909     | 0.833   | 0.167   | 0.0325 ms | 83.5       
+#4     | USDA SCS-CN Empirical (NEH-4)        | 3 Dims    | 0.909     | 0.833   | 0.167   | 0.0301 ms | 79.4       
+#5     | TOPMODEL Topographic Wetness         | 4 Dims    | 0.769     | 0.625   | 0.375   | 0.0234 ms | 72.8       
+#6     | Rational Method (ASCE Peak)          | 2 Dims    | 0.571     | 0.400   | 0.000   | 0.0191 ms | 60.6       
+#7     | Muskingum Flood Wave Routing         | 3 Dims    | 0.000     | 0.000   | 0.000   | 0.0415 ms | 42.5       
+#8     | Linear Reservoir Lumped Hydrograph   | 2 Dims    | 0.000     | 0.000   | 0.000   | 0.0416 ms | 38.3       
 =========================================================================================================
                       OVERALL WINNER: #1 EcoPulse Spatio-Temporal ML Hydrology
 =========================================================================================================

@@ -11,6 +11,16 @@ secrets/
 !**/weights/*.json
 !weights_manifest.json
 
+# Datasets & Large GeoTIFFs
+server/data/
+data/
+*.tif
+*.tiff
+*.crdownload
+*.part
+*.csv
+
+
 # Python
 __pycache__/
 *.py[cod]

@@ -840,7 +840,7 @@ def generate_benchmark_txt_report(results: Dict[str, Any], output_path: str) -> 
         "       interactive satellite map panning and 60 FPS WebGL tile rendering.",
         "",
         "=========================================================================================================",
-        " 6. FINAL COMPREHENSIVE HYDROLOGICAL MODEL LEADERBOARD & RANKINGS",
+        " 6. COMPREHENSIVE HYDROLOGICAL MODEL LEADERBOARD & RANKINGS",
         "=========================================================================================================",
         "Composite Ranking Criteria: Telemetry Dimensions (25%), F1 Detection (25%), CSI Threat Score (20%),",
         "False Alarm Suppression (15%), Real-Time Compute Throughput (15%).",
@@ -888,7 +888,7 @@ class TestHydrologicalModelsSuite:
         assert "TOPMODEL" in content
         assert "Green-Ampt" in content
         assert "Snyder Synthetic Unit Hydrograph" in content
-        assert "FINAL COMPREHENSIVE HYDROLOGICAL MODEL LEADERBOARD" in content
+        assert "COMPREHENSIVE HYDROLOGICAL MODEL LEADERBOARD" in content
 
     def test_ecopulse_statistical_correlation(self):
         """Verify EcoPulse ML Hydrology maintains strong positive correlation with ground truth risk."""

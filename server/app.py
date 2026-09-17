@@ -100,6 +100,15 @@ class FlashFloodResponse (BaseModel ):
     risk_level :str
     recommended_action :str
     assessed_at :str
+    flash_flood_guidance_mm :Optional [float ]=None
+    flash_flood_threat_mm :Optional [float ]=None
+    threshold_runoff_mm :Optional [float ]=None
+    soil_water_deficit_mm :Optional [float ]=None
+    crest_excess_runoff_mm :Optional [float ]=None
+    inundation_depth_est_m :Optional [float ]=None
+    catchment_concentration_time_hr :Optional [float ]=None
+    model_engine :Optional [str ]=None
+    is_land :Optional [bool ]=True
 
 class WildfireInferenceResponse (BaseModel ):
     title :str
