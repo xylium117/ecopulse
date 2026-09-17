@@ -2,7 +2,7 @@
    ECOPULSE PLANETARY MULTI-SENSOR HYDROLOGICAL MODEL vs. 7 TRADITIONAL HYDROLOGICAL MODELS
                       COMPREHENSIVE TELEMETRY BENCHMARK & TEST REPORT
 =========================================================================================================
-Assessed At       : 2026-09-17T14:36:38.698301+00:00 (UTC)
+Assessed At       : 2026-09-17T14:38:33.321058+00:00 (UTC)
 Evaluation Suite  : Remote Sensing Multi-Sensor ML vs. Classic Civil/Hydraulic Formulations
 Catchments Tested : 210 Catchment Topographies Across Global Ecoregions
 Platform          : Python 3.14.7 | Zero-Leak Fast Ingestion Pipeline
@@ -67,17 +67,17 @@ with optical MNDWI and topographic wetness indexing, filtering out static table 
 ---------------------------------------------------------------------------------------------------------
 Model Architecture                   | Mean Latency | Median P50  | P95 Latency  | P99 Latency  | Throughput (QPS)
 ---------------------------------------------------------------------------------------------------------
-EcoPulse Spatio-Temporal ML          | 0.3976  ms | 0.3758 ms | 0.8297  ms | 2.5761  ms | 2514.9          
-USDA SCS-CN Empirical (NEH-4)        | 0.0301  ms | 0.0202 ms | 0.0614  ms | 0.2217  ms | 33211.6         
-TOPMODEL Topographic Wetness         | 0.0234  ms | 0.0155 ms | 0.0762  ms | 0.1486  ms | 42789.9         
-Green-Ampt Physical Infiltration     | 0.0325  ms | 0.0224 ms | 0.0900  ms | 0.1861  ms | 30762.0         
-Snyder Synthetic Unit Hydrograph     | 0.0189  ms | 0.0132 ms | 0.0298  ms | 0.1346  ms | 52795.7         
-Muskingum Flood Wave Routing         | 0.0415  ms | 0.0290 ms | 0.0680  ms | 0.2419  ms | 24102.7         
-Rational Method (ASCE Peak)          | 0.0191  ms | 0.0140 ms | 0.0288  ms | 0.1169  ms | 52232.3         
-Linear Reservoir Lumped Hydrograph   | 0.0416  ms | 0.0290 ms | 0.0625  ms | 0.2280  ms | 24012.3         
+EcoPulse Spatio-Temporal ML          | 0.2990  ms | 0.3376 ms | 0.5891  ms | 1.4345  ms | 3344.6          
+USDA SCS-CN Empirical (NEH-4)        | 0.0214  ms | 0.0179 ms | 0.0335  ms | 0.1265  ms | 46771.6         
+TOPMODEL Topographic Wetness         | 0.0150  ms | 0.0139 ms | 0.0259  ms | 0.0284  ms | 66711.1         
+Green-Ampt Physical Infiltration     | 0.0228  ms | 0.0204 ms | 0.0359  ms | 0.0689  ms | 43840.4         
+Snyder Synthetic Unit Hydrograph     | 0.0125  ms | 0.0119 ms | 0.0211  ms | 0.0234  ms | 80299.8         
+Muskingum Flood Wave Routing         | 0.0328  ms | 0.0266 ms | 0.0479  ms | 0.2065  ms | 30454.2         
+Rational Method (ASCE Peak)          | 0.0144  ms | 0.0130 ms | 0.0233  ms | 0.0268  ms | 69206.4         
+Linear Reservoir Lumped Hydrograph   | 0.0294  ms | 0.0265 ms | 0.0473  ms | 0.0526  ms | 34047.2         
 ---------------------------------------------------------------------------------------------------------
-Peak Memory Allocation : 208.46 KB across 210 full catchment evaluations
-Memory Per Assessment  : 1067.3 Bytes / query (Zero-leak runtime)
+Peak Memory Allocation : 203.87 KB across 210 full catchment evaluations
+Memory Per Assessment  : 1043.8 Bytes / query (Zero-leak runtime)
 
 ---------------------------------------------------------------------------------------------------------
  4. REAL-WORLD REGIONAL TELEMETRY DIFFERENCE TABLE
@@ -121,14 +121,14 @@ False Alarm Suppression (15%), Real-Time Compute Throughput (15%).
 
 Rank   | Model Architecture                   | Telemetry  | F1-Score  | CSI     | FAR     | Latency     | Score / 100
 ---------------------------------------------------------------------------------------------------------
-#1     | EcoPulse Spatio-Temporal ML          | 6 Dims    | 0.889     | 0.800   | 0.000   | 0.3976 ms | 93.2       
-#2     | Snyder Synthetic Unit Hydrograph     | 4 Dims    | 0.889     | 0.800   | 0.000   | 0.0189 ms | 84.9       
-#3     | Green-Ampt Physical Infiltration     | 4 Dims    | 0.909     | 0.833   | 0.167   | 0.0325 ms | 83.5       
-#4     | USDA SCS-CN Empirical (NEH-4)        | 3 Dims    | 0.909     | 0.833   | 0.167   | 0.0301 ms | 79.4       
-#5     | TOPMODEL Topographic Wetness         | 4 Dims    | 0.769     | 0.625   | 0.375   | 0.0234 ms | 72.8       
-#6     | Rational Method (ASCE Peak)          | 2 Dims    | 0.571     | 0.400   | 0.000   | 0.0191 ms | 60.6       
-#7     | Muskingum Flood Wave Routing         | 3 Dims    | 0.000     | 0.000   | 0.000   | 0.0415 ms | 42.5       
-#8     | Linear Reservoir Lumped Hydrograph   | 2 Dims    | 0.000     | 0.000   | 0.000   | 0.0416 ms | 38.3       
+#1     | EcoPulse Spatio-Temporal ML          | 6 Dims    | 0.889     | 0.800   | 0.000   | 0.2990 ms | 93.2       
+#2     | Snyder Synthetic Unit Hydrograph     | 4 Dims    | 0.889     | 0.800   | 0.000   | 0.0125 ms | 84.9       
+#3     | Green-Ampt Physical Infiltration     | 4 Dims    | 0.909     | 0.833   | 0.167   | 0.0228 ms | 83.5       
+#4     | USDA SCS-CN Empirical (NEH-4)        | 3 Dims    | 0.909     | 0.833   | 0.167   | 0.0214 ms | 79.4       
+#5     | TOPMODEL Topographic Wetness         | 4 Dims    | 0.769     | 0.625   | 0.375   | 0.0150 ms | 72.8       
+#6     | Rational Method (ASCE Peak)          | 2 Dims    | 0.571     | 0.400   | 0.000   | 0.0144 ms | 60.6       
+#7     | Muskingum Flood Wave Routing         | 3 Dims    | 0.000     | 0.000   | 0.000   | 0.0328 ms | 42.5       
+#8     | Linear Reservoir Lumped Hydrograph   | 2 Dims    | 0.000     | 0.000   | 0.000   | 0.0294 ms | 38.3       
 =========================================================================================================
                       OVERALL WINNER: #1 EcoPulse Spatio-Temporal ML Hydrology
 =========================================================================================================
