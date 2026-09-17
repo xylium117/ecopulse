@@ -16,6 +16,6 @@
   "parameters": 14280512,
   "flood_model": "flood_risk_model.json",
   "depth_model": "inundation2depth_model.json",
-  "trained_at": "2026-09-17T14:35:57.422317+00:00",
+  "trained_at": "2026-09-17T15:42:08.172248+00:00",
   "status": "Trained and Active with STURM-FLOOD, FloodDET, and Inundation2Depth."
 }

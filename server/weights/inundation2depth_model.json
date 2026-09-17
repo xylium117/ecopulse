@@ -1,7 +1,7 @@
 {
   "model_name": "Inundation2Depth Hydro-Kinematic 2D Water Depth Predictor",
   "benchmark_dataset": "Inundation2Depth Benchmark (SAR + HAND Elevation Hydrodynamics)",
-  "trained_at": "2026-09-17T14:35:57.418951+00:00",
+  "trained_at": "2026-09-17T15:42:08.164838+00:00",
   "input_features": [
     "InundationExtentPct",
     "SARBackscatterDropDB",

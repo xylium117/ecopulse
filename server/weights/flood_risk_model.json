@@ -5,7 +5,7 @@
     "FloodDET (Urban/Rural Edge Delineation)"
   ],
   "dataset": "train.csv (Planetary Flood Observations)",
-  "trained_at": "2026-09-17T14:35:57.243209+00:00",
+  "trained_at": "2026-09-17T15:42:07.773670+00:00",
   "feature_names": [
     "MonsoonIntensity",
     "TopographyDrainage",
