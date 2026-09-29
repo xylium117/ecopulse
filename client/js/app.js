@@ -194,7 +194,7 @@
       center: [lat, lon],
       zoom: state.currentRegion.zoom,
       minZoom: 3,
-      maxZoom: 13,
+      maxZoom: 18,
       maxBounds: [
         [-85, -180],
         [85, 180],
@@ -207,7 +207,7 @@
 
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
       minZoom: 3,
-      maxZoom: 13,
+      maxZoom: 18,
       noWrap: true,
       bounds: [
         [-85, -180],
@@ -216,10 +216,9 @@
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, GeoEye",
     }).addTo(state.leafletInstance);
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", {
-      subdomains: "abcd",
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
       minZoom: 3,
-      maxZoom: 13,
+      maxZoom: 18,
       noWrap: true,
       opacity: 0.85,
     }).addTo(state.leafletInstance);

@@ -29,7 +29,7 @@ The platform provides dual operational modes:
 ## 🚀 Key Features
 
 - **Dual Visualization Engines**:
-  - **Open Satellite Engine (2D)**: Zero-API-key open GIS renderer pairing ESRI World Imagery with CartoDB Dark Matter base maps.
+  - **Open Satellite Engine (2D)**: Zero-API-key open GIS renderer pairing ESRI World Imagery with ESRI World Boundaries and Places reference overlays.
   - **Planetary WebGL Globe (3D)**: Token-free hardware-accelerated 3D planetary globe powered by Globe.gl and Three.js with pulsing hazard ripple rings, 3D telemetry markers, and clickable smooth camera transitions.
 - **Deep Learning Inundation & Burn Segmentation**:
   - Pre-calibrated regional disaster scenes: **Nepal & Tibet** (mountain cloudburst surge), **India** (Indo-Gangetic & Brahmaputra basin), **Valencia** (DANA flash flood), **Bangladesh** (delta river swell), **California** (Camp Fire corridor), **Amazon** (rainforest deforestation), and **Borneo** (peatland fires).

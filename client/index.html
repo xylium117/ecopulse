@@ -61,7 +61,8 @@
             <span>EcoPulse</span>
           </div>
           <div style="display: flex; gap: 6px;">
-            <button class="btn-icon" id="btn-export" title="Export Planetary Telemetry Report" aria-label="Export Report">
+            <button class="btn-icon" id="btn-export" title="Export Planetary Telemetry Report"
+              aria-label="Export Report">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -121,7 +122,8 @@
           </div>
           <div class="metric-card">
             <span class="metric-label">Sensors Ingested</span>
-            <span class="metric-value" id="metric-sensors-label" style="font-size: 13px; color: var(--spectral-bright);">Sentinel-1 &amp; S2</span>
+            <span class="metric-value" id="metric-sensors-label"
+              style="font-size: 13px; color: var(--spectral-bright);">Sentinel-1 &amp; S2</span>
             <span class="metric-sub">10m C-SAR &amp; Multi-Spectral</span>
           </div>
           <div class="metric-card">
@@ -207,7 +209,8 @@
           <span id="chart-status">Canopy baseline nominal</span>
           <span id="chart-end">2026-01-01</span>
         </div>
-        <div id="ndvi-chart-wrap" title="Click to expand full timeseries telemetry analysis" tabindex="0" role="button" aria-label="Expand Telemetry Chart">
+        <div id="ndvi-chart-wrap" title="Click to expand full timeseries telemetry analysis" tabindex="0" role="button"
+          aria-label="Expand Telemetry Chart">
           <canvas id="ndvi-chart-canvas"></canvas>
           <div class="chart-click-hint">
             <i class="fa-solid fa-up-right-and-down-left-from-center" style="font-size: 8px;"></i>
@@ -223,11 +226,14 @@
       <div class="panel" id="panel-flood-section">
         <div class="panel-header">
           <span class="panel-title">Flash Flood Risk &amp; Saturation (FFSI)</span>
-          <span id="flood-risk-score" class="panel-badge" style="color: #FDBA74; background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.40);">FFSI 84.2%</span>
+          <span id="flood-risk-score" class="panel-badge"
+            style="color: #FDBA74; background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.40);">FFSI
+            84.2%</span>
         </div>
         <div class="drought-box">
           <div class="drought-bar-bg">
-            <div id="flood-saturation-bar" class="drought-bar-fill" style="width: 84%; background: linear-gradient(90deg, #F97316 0%, #EF4444 100%);"></div>
+            <div id="flood-saturation-bar" class="drought-bar-fill"
+              style="width: 84%; background: linear-gradient(90deg, #F97316 0%, #EF4444 100%);"></div>
           </div>
           <div class="drought-stats" style="margin-top: 6px;">
             <span id="flood-risk-class" style="color: #F87171; font-weight: 600;">Flash Flood Emergency</span>
@@ -263,8 +269,8 @@
               <label for="flood-slider"
                 style="font-size: 10px; color: var(--ink-muted); text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">Runoff
                 Risk Threshold:</label>
-              <span id="flood-slider-val" class="mono"
-                style="font-size: 11px; color: #FB923C; font-weight: 600;">60% (Warning)</span>
+              <span id="flood-slider-val" class="mono" style="font-size: 11px; color: #FB923C; font-weight: 600;">60%
+                (Warning)</span>
             </div>
             <input type="range" id="flood-slider" min="20" max="85" value="60" step="1" class="custom-range-slider"
               style="width: 100%; cursor: pointer;">
@@ -276,8 +282,10 @@
             </div>
           </div>
 
-          <div id="flood-action-text" class="mono" style="font-size: 10px; color: #94A3B8; margin-top: 8px; line-height: 1.4;">
-            Active torrential runoff detected: low-lying river corridors and bridge crossings at immediate inundation risk.
+          <div id="flood-action-text" class="mono"
+            style="font-size: 10px; color: #94A3B8; margin-top: 8px; line-height: 1.4;">
+            Active torrential runoff detected: low-lying river corridors and bridge crossings at immediate inundation
+            risk.
           </div>
         </div>
       </div>
@@ -394,7 +402,8 @@
             </div>
           </div>
 
-          <div id="studio-status" class="mono" style="font-size: 10px; color: var(--ink-muted);">Global Spatio-Temporal Flood U-Net ready.</div>
+          <div id="studio-status" class="mono" style="font-size: 10px; color: var(--ink-muted);">Global Spatio-Temporal
+            Flood U-Net ready.</div>
         </div>
       </div>
 
@@ -420,10 +429,13 @@
         <div class="globe-popup-content">
           <div class="globe-popup-title" id="globe-popup-title">NEPAL FLOOD SURGE</div>
           <div class="globe-popup-row">Type: <strong id="globe-popup-type">Flash Flood &amp; Inundation</strong></div>
-          <div class="globe-popup-row">Severity: <strong id="globe-popup-sev">CRITICAL</strong> · <span id="globe-popup-conf">96.8%</span></div>
-          <div class="globe-popup-desc" id="globe-popup-desc">SAR radar backscatter attenuation detected extensive surface water expansion.</div>
+          <div class="globe-popup-row">Severity: <strong id="globe-popup-sev">CRITICAL</strong> · <span
+              id="globe-popup-conf">96.8%</span></div>
+          <div class="globe-popup-desc" id="globe-popup-desc">SAR radar backscatter attenuation detected extensive
+            surface water expansion.</div>
           <div style="margin-top: 8px; display: flex; gap: 6px;">
-            <button class="btn-primary-sm" id="btn-globe-popup-view2d" style="flex: 1; font-size: 10px; padding: 5px 8px;">
+            <button class="btn-primary-sm" id="btn-globe-popup-view2d"
+              style="flex: 1; font-size: 10px; padding: 5px 8px;">
               <i class="fa-solid fa-map-location-dot"></i>
               <span>View in 2D Satellite</span>
             </button>
@@ -484,12 +496,14 @@
       </div>
 
       <div id="map-engine-bar">
-        <button class="engine-btn active" id="engine-leaflet-btn" data-engine="leaflet" title="2D Open Satellite Engine (Leaflet + ESRI)">
+        <button class="engine-btn active" id="engine-leaflet-btn" data-engine="leaflet"
+          title="2D Open Satellite Engine (Leaflet)">
           <span
             style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--veg-bright);"></span>
           <span>Open Satellite (2D)</span>
         </button>
-        <button class="engine-btn" id="engine-globe-btn" data-engine="globe" title="3D Planetary WebGL Globe (Three.js + Globe.gl)">
+        <button class="engine-btn" id="engine-globe-btn" data-engine="globe"
+          title="3D Planetary WebGL Globe (Three.js + Globe.gl)">
           <i class="fa-solid fa-earth-americas" style="font-size: 11px;"></i>
           <span>Planetary Globe (3D)</span>
         </button>
@@ -507,16 +521,19 @@
         </div>
 
         <div class="map-tool-group">
-          <button class="map-tool-btn" id="btn-lock-zoom" title="Lock / Unlock Zoom Level" aria-label="Toggle Zoom Lock">
+          <button class="map-tool-btn" id="btn-lock-zoom" title="Lock / Unlock Zoom Level"
+            aria-label="Toggle Zoom Lock">
             <i class="fa-solid fa-lock-open" id="icon-lock-zoom"></i>
           </button>
           <button class="map-tool-btn" id="btn-recenter" title="Recenter on Active AOI" aria-label="Recenter Map">
             <i class="fa-solid fa-location-crosshairs"></i>
           </button>
-          <button class="map-tool-btn" id="btn-scan-viewport" title="Scan Current Viewport with AI" aria-label="AI Viewport Scan">
+          <button class="map-tool-btn" id="btn-scan-viewport" title="Scan Current Viewport with AI"
+            aria-label="AI Viewport Scan">
             <i class="fa-solid fa-satellite-dish"></i>
           </button>
-          <button class="map-tool-btn" id="btn-fullscreen" title="Toggle Fullscreen Map View" aria-label="Toggle Fullscreen">
+          <button class="map-tool-btn" id="btn-fullscreen" title="Toggle Fullscreen Map View"
+            aria-label="Toggle Fullscreen">
             <i class="fa-solid fa-expand" id="icon-fullscreen"></i>
           </button>
         </div>
@@ -594,7 +611,9 @@
         <div class="form-group">
           <label class="form-label">3D Planetary Globe Shaders &amp; Atmosphere</label>
           <div style="font-size: 11px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 8px;">
-            EcoPulse uses <strong>Globe.gl + Three.js WebGL Engine</strong> for real-time 3D planetary rendering with atmospheric Rayleigh scattering, high-res satellite surface bump mapping, and 3D animated hazard ripple rings — with <strong>zero API keys or external tokens required</strong>.
+            EcoPulse uses <strong>Globe.gl + Three.js WebGL Engine</strong> for real-time 3D planetary rendering with
+            atmospheric Rayleigh scattering, high-res satellite surface bump mapping, and 3D animated hazard ripple
+            rings — with <strong>zero API keys or external tokens required</strong>.
           </div>
         </div>
 
@@ -651,9 +670,13 @@
           style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 14px; font-size: 12.5px; line-height: 1.6; color: #E2E8F0;">
           <strong style="color: #fff; display: block; margin-bottom: 6px; font-size: 14px;">An "MRI Scanner" for Planet
             Earth</strong>
-          Standard optical photographs only show visible light. When dense monsoon storm clouds blanket Nepal or smoke envelopes a wildfire in California, optical sensors get obscured.
+          Standard optical photographs only show visible light. When dense monsoon storm clouds blanket Nepal or smoke
+          envelopes a wildfire in California, optical sensors get obscured.
           <br><br>
-          EcoPulse fuses <strong>Sentinel-2 Multi-Spectral (NIR, Red, SWIR)</strong> with <strong>Sentinel-1 C-Band Synthetic Aperture Radar (SAR)</strong>. Radar microwaves easily penetrate cloud covers, while multi-spectral bands isolate chlorophyll loss, soil moisture saturation, and flood water expansion in real time.
+          EcoPulse fuses <strong>Sentinel-2 Multi-Spectral (NIR, Red, SWIR)</strong> with <strong>Sentinel-1 C-Band
+            Synthetic Aperture Radar (SAR)</strong>. Radar microwaves easily penetrate cloud covers, while
+          multi-spectral bands isolate chlorophyll loss, soil moisture saturation, and flood water expansion in real
+          time.
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
@@ -662,9 +685,11 @@
             <div
               style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--flame-bright); margin-bottom: 4px; font-weight: 700;">
               RED (665 nm) &amp; SWIR (2190 nm)</div>
-            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Thermal &amp; Burn Severity</div>
+            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Thermal &amp; Burn Severity
+            </div>
             <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-              Short-wave infrared penetrates smoke. Used in Normalized Burn Ratio ($\text{NBR}$) to segment charcoal scars.
+              Short-wave infrared penetrates smoke. Used in Normalized Burn Ratio ($\text{NBR}$) to segment charcoal
+              scars.
             </div>
           </div>
 
@@ -673,9 +698,11 @@
             <div
               style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #38BDF8; margin-bottom: 4px; font-weight: 700;">
               GREEN (560 nm) &amp; MNDWI</div>
-            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Water Index Extraction</div>
+            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Water Index Extraction
+            </div>
             <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-              Water strongly reflects visible green light while completely absorbing SWIR light, creating peak contrast for flood detection.
+              Water strongly reflects visible green light while completely absorbing SWIR light, creating peak contrast
+              for flood detection.
             </div>
           </div>
 
@@ -684,9 +711,11 @@
             <div
               style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #A78BFA; margin-bottom: 4px; font-weight: 700;">
               SENTINEL-1 SAR RADAR (C-Band)</div>
-            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Cloud-Penetrating Inundation</div>
+            <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Cloud-Penetrating
+              Inundation</div>
             <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-              Smooth flood waters cause specular reflection, sending microwave energy away from the satellite. This causes a steep drop in backscatter ($\sigma^0$).
+              Smooth flood waters cause specular reflection, sending microwave energy away from the satellite. This
+              causes a steep drop in backscatter ($\sigma^0$).
             </div>
           </div>
         </div>
@@ -706,52 +735,62 @@
                 <span style="font-size: 10px; color: var(--ink-muted);">Cloudburst Runoff Risk</span>
               </div>
               <div style="font-size: 13px; color: #fff; margin: 4px 0;">
-                $$\text{FFSI} = \alpha \cdot \text{Saturation} + \beta \cdot \Delta P_{72\text{h}} + \gamma \cdot \text{CN} \qquad (\text{Flash Flood Risk Indicator})$$
+                $$\text{FFSI} = \alpha \cdot \text{Saturation} + \beta \cdot \Delta P_{72\text{h}} + \gamma \cdot
+                \text{CN} \qquad (\text{Flash Flood Risk Indicator})$$
               </div>
               <div style="font-size: 10.5px; color: var(--ink-muted);">
-                Integrates antecedent soil saturation, 72-hour precipitation anomaly, and runoff curve number to paint flash flood risk.
+                Integrates antecedent soil saturation, 72-hour precipitation anomaly, and runoff curve number to paint
+                flash flood risk.
               </div>
             </div>
 
             <div
               style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #0284C7;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                <strong style="color: #0284C7; font-size: 11.5px;">2. SAR Radar Specular Drop &amp; Inundation Extent</strong>
+                <strong style="color: #0284C7; font-size: 11.5px;">2. SAR Radar Specular Drop &amp; Inundation
+                  Extent</strong>
                 <span style="font-size: 10px; color: var(--ink-muted);">Standing Flood Water</span>
               </div>
               <div style="font-size: 13px; color: #fff; margin: 4px 0;">
-                $$\Delta\sigma^0 = \sigma^0_{\text{post}} - \sigma^0_{\text{pre}} \quad [\text{dB}] \qquad \text{MNDWI} = \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}}$$
+                $$\Delta\sigma^0 = \sigma^0_{\text{post}} - \sigma^0_{\text{pre}} \quad [\text{dB}] \qquad \text{MNDWI}
+                = \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}}$$
               </div>
               <div style="font-size: 10.5px; color: var(--ink-muted);">
-                A backscatter attenuation of $\Delta\sigma^0 \le -6.5\text{ dB}$ paired with $\text{MNDWI} > 0.12$ isolates deep submerged floodplains in luminous electric blue.
+                A backscatter attenuation of $\Delta\sigma^0 \le -6.5\text{ dB}$ paired with $\text{MNDWI} > 0.12$
+                isolates deep submerged floodplains in luminous electric blue.
               </div>
             </div>
 
             <div
               style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #10b981;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                <strong style="color: #10b981; font-size: 11.5px;">3. Normalized Difference Vegetation Index (NDVI)</strong>
+                <strong style="color: #10b981; font-size: 11.5px;">3. Normalized Difference Vegetation Index
+                  (NDVI)</strong>
                 <span style="font-size: 10px; color: var(--ink-muted);">Canopy Greenness &amp; Photosynthesis</span>
               </div>
               <div style="font-size: 13px; color: #fff; margin: 4px 0;">
                 $$\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}$$
               </div>
               <div style="font-size: 10.5px; color: var(--ink-muted);">
-                Ranges from $-1.0$ (water) to $+1.0$ (dense rainforest canopy). Stressed plants fall between $0.20$ and $0.45$.
+                Ranges from $-1.0$ (water) to $+1.0$ (dense rainforest canopy). Stressed plants fall between $0.20$ and
+                $0.45$.
               </div>
             </div>
 
             <div
               style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid #ef4444;">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                <strong style="color: #ef4444; font-size: 11.5px;">4. Normalized Burn Ratio (NBR) &amp; Burn Severity ($\Delta\text{NBR}$)</strong>
+                <strong style="color: #ef4444; font-size: 11.5px;">4. Normalized Burn Ratio (NBR) &amp; Burn Severity
+                  ($\Delta\text{NBR}$)</strong>
                 <span style="font-size: 10px; color: var(--ink-muted);">Wildfire Severity</span>
               </div>
               <div style="font-size: 13px; color: #fff; margin: 4px 0;">
-                $$\text{NBR} = \frac{\text{NIR} - \text{SWIR}}{\text{NIR} + \text{SWIR}} \qquad \Longrightarrow \qquad \Delta\text{NBR} = \text{NBR}_{\text{pre}} - \text{NBR}_{\text{post}}$$
+                $$\text{NBR} = \frac{\text{NIR} - \text{SWIR}}{\text{NIR} + \text{SWIR}} \qquad \Longrightarrow \qquad
+                \Delta\text{NBR} = \text{NBR}_{\text{pre}} - \text{NBR}_{\text{post}}$$
               </div>
               <div style="font-size: 10.5px; color: var(--ink-muted);">
-                $\Delta\text{NBR} > 0.44$ indicates high burn severity where mature canopy biomass was converted into charcoal and ash.
+                $\Delta\text{NBR} > 0.44$ indicates high burn severity where mature canopy biomass was converted into
+                charcoal and ash.
               </div>
             </div>
           </div>
@@ -769,9 +808,11 @@
               <div
                 style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--veg-bright); margin-bottom: 4px; font-weight: 700;">
                 STEP 1: MULTI-MODAL INGESTION</div>
-              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Time-Stacked Tensors</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">Time-Stacked Tensors
+              </div>
               <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                The model loads multi-spectral tiles across 2 time steps ($T_0$ pre-event baseline and $T_1$ post-event pass) as a $5\text{D}$ tensor: $(B, T=2, H=256, W=256, C=3)$.
+                The model loads multi-spectral tiles across 2 time steps ($T_0$ pre-event baseline and $T_1$ post-event
+                pass) as a $5\text{D}$ tensor: $(B, T=2, H=256, W=256, C=3)$.
               </div>
             </div>
 
@@ -782,7 +823,8 @@
                 STEP 2: SPATIAL ENCODER</div>
               <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">2D Convolutions</div>
               <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                Shared $32 \to 64 \to 128$ convolutional filters extract riverbeds, terrain contours, embankments, and canopy structure independently for each image.
+                Shared $32 \to 64 \to 128$ convolutional filters extract riverbeds, terrain contours, embankments, and
+                canopy structure independently for each image.
               </div>
             </div>
 
@@ -791,9 +833,11 @@
               <div
                 style="font-family: 'IBM Plex Mono'; font-size: 10px; color: var(--flame-bright); margin-bottom: 4px; font-weight: 700;">
                 STEP 3: TEMPORAL MEMORY</div>
-              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">ConvLSTM2D Delta Gating</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">ConvLSTM2D Delta Gating
+              </div>
               <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                A recurrent convolutional memory cell isolates sudden water expansion and thermal burns while ignoring harmless seasonal variations.
+                A recurrent convolutional memory cell isolates sudden water expansion and thermal burns while ignoring
+                harmless seasonal variations.
               </div>
             </div>
 
@@ -802,9 +846,11 @@
               <div
                 style="font-family: 'IBM Plex Mono'; font-size: 10px; color: #A78BFA; margin-bottom: 4px; font-weight: 700;">
                 STEP 4: DAMAGE MAP OUTPUT</div>
-              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">U-Net Transposed Decoder</div>
+              <div style="font-size: 11px; color: #fff; font-weight: 600; margin-bottom: 4px;">U-Net Transposed Decoder
+              </div>
               <div style="font-size: 10.5px; color: var(--ink-muted); line-height: 1.4;">
-                Upsamples features with skip connections to output a precise $256 \times 256$ damage probability mask, vectorised into glowing GeoJSON damage polygons on the map.
+                Upsamples features with skip connections to output a precise $256 \times 256$ damage probability mask,
+                vectorised into glowing GeoJSON damage polygons on the map.
               </div>
             </div>
           </div>
@@ -817,7 +863,8 @@
   </div>
 
   <!-- Modal: Expanded Full-Width Timeseries Telemetry Analyzer -->
-  <div id="modal-chart-expanded" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title">
+  <div id="modal-chart-expanded" class="modal-backdrop" role="dialog" aria-modal="true"
+    aria-labelledby="chart-modal-title">
     <div class="modal-dialog modal-dialog-chart">
       <div class="modal-header modal-header-chart">
         <div class="chart-modal-brand">
@@ -826,7 +873,8 @@
             <h3 id="chart-modal-title" class="modal-title">Planetary Telemetry Timeseries Analyzer</h3>
             <span class="chart-modal-badge" id="modal-chart-region-badge">NEPAL REGIONAL CORRIDOR</span>
           </div>
-          <span class="chart-modal-subtitle">Full-Spectrum Spatio-Temporal Sensor Ingest • Sentinel-1 SAR &amp; Sentinel-2 MSI Constellation</span>
+          <span class="chart-modal-subtitle">Full-Spectrum Spatio-Temporal Sensor Ingest • Sentinel-1 SAR &amp;
+            Sentinel-2 MSI Constellation</span>
         </div>
         <div class="chart-modal-controls">
           <div class="chart-tabs" id="modal-chart-tabs-flood">
@@ -840,7 +888,8 @@
             <button class="chart-tab" data-metric="ndwi">NDWI</button>
             <button class="chart-tab" data-metric="carbon_flux">CO₂ FLUX</button>
           </div>
-          <button class="btn-icon" id="btn-close-chart-modal" aria-label="Close Expanded Chart" style="font-size: 15px;">✕</button>
+          <button class="btn-icon" id="btn-close-chart-modal" aria-label="Close Expanded Chart"
+            style="font-size: 15px;">✕</button>
         </div>
       </div>
 
@@ -851,11 +900,13 @@
         </div>
         <div class="chart-meta-group">
           <span class="meta-label">Sensor Constellation:</span>
-          <span class="meta-val" id="modal-chart-sensor" style="color: var(--veg-bright);">Sentinel-1 SAR + Sentinel-2 MSI</span>
+          <span class="meta-val" id="modal-chart-sensor" style="color: var(--veg-bright);">Sentinel-1 SAR + Sentinel-2
+            MSI</span>
         </div>
         <div class="chart-meta-group">
           <span class="meta-label">Telemetry Ingest:</span>
-          <span class="meta-val" id="modal-chart-status" style="color: #67E8F9;">Radar &amp; Optical Ingest Synchronized</span>
+          <span class="meta-val" id="modal-chart-status" style="color: #67E8F9;">Radar &amp; Optical Ingest
+            Synchronized</span>
         </div>
         <div class="chart-meta-group">
           <span class="meta-label">Sampling:</span>
@@ -896,7 +947,8 @@
       </div>
       <h3 class="orientation-title">Landscape Mode Required</h3>
       <p class="orientation-desc">
-        EcoPulse Planetary Climate Intelligence is locked to landscape orientation for optimal mission-control satellite mapping.
+        EcoPulse Planetary Climate Intelligence is locked to landscape orientation for optimal mission-control satellite
+        mapping.
       </p>
       <button class="btn-primary" id="btn-force-landscape" style="margin-top: 6px;">
         <i class="fa-solid fa-rotate"></i>
@@ -907,7 +959,7 @@
 
   <div id="toast" class="toast">Action completed.</div>
 
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=2.3"></script>
 </body>
 
 </html>
