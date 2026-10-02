@@ -203,15 +203,12 @@ Image arrays are normalized, converted into structured tensors, and passed throu
 - **Thermal Infrared (TIRS)**: Surface kinetic temperature anomalies for drought and evapotranspiration proxies.
 
 ### Derived Biophysical Products
-
-| Metric / Index | Mathematical Formulation | Description |
-| :--- | :--- | :--- |
-| **NDVI** (Vegetation Index) | `(NIR - Red) / (NIR + Red)` | Normalized Difference Vegetation Index tracking photosynthetic canopy vigor $[0.0, 1.0]$ |
-| **MNDWI** (Water Index) | `(Green - SWIR) / (Green + SWIR)` | Modified Normalized Difference Water Index for surface water expansion $[-1.0, 1.0]$ |
-| **NBR** (Burn Ratio) | `(NIR - SWIR) / (NIR + SWIR)` | Normalized Burn Ratio for wildfire boundary delineation and burn severity |
-| **VCI** (Vegetation Condition) | `((NDVI - NDVI_min) / (NDVI_max - NDVI_min)) * 100` | Vegetation Condition Index measuring relative vegetative health against multi-year extremes $[0, 100]$ |
-| **Δσ⁰** (SAR Backscatter Delta) | `σ⁰_post - σ⁰_pre` (dB) | Sentinel-1 SAR backscatter attenuation isolating cloud-penetrating standing water |
-| **FFSI** (Flood Susceptibility) | `wᵀx + b` | Flash Flood Susceptibility Index composite multi-factor hydrological score $[0, 100]$ |
+- **NDVI (Normalized Difference Vegetation Index)**: $\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}$
+- **MNDWI (Modified Normalized Difference Water Index)**: $\text{MNDWI} = \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}}$
+- **NBR (Normalized Burn Ratio)**: $\text{NBR} = \frac{\text{NIR} - \text{SWIR}}{\text{NIR} + \text{SWIR}}$
+- **VCI (Vegetation Condition Index)**: $\text{VCI} = \frac{\text{NDVI} - \text{NDVI}_{\text{min}}}{\text{NDVI}_{\text{max}} - \text{NDVI}_{\text{min}}} \times 100$
+- **$\Delta \sigma^0$ (SAR Backscatter Delta)**: $\Delta \sigma^0 = \sigma^0_{\text{post}} - \sigma^0_{\text{pre}} \quad (\text{dB})$
+- **FFSI (Flash Flood Susceptibility Index)**: $\text{FFSI} = \mathbf{w}^T \mathbf{x} + b \quad [0, 100]$
 
 ---
 
