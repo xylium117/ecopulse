@@ -203,12 +203,36 @@ Image arrays are normalized, converted into structured tensors, and passed throu
 - **Thermal Infrared (TIRS)**: Surface kinetic temperature anomalies for drought and evapotranspiration proxies.
 
 ### Derived Biophysical Products
-- **NDVI (Normalized Difference Vegetation Index)**: $\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}$
-- **MNDWI (Modified Normalized Difference Water Index)**: $\text{MNDWI} = \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}}$
-- **NBR (Normalized Burn Ratio)**: $\text{NBR} = \frac{\text{NIR} - \text{SWIR}}{\text{NIR} + \text{SWIR}}$
-- **VCI (Vegetation Condition Index)**: $\text{VCI} = \frac{\text{NDVI} - \text{NDVI}_{\text{min}}}{\text{NDVI}_{\text{max}} - \text{NDVI}_{\text{min}}} \times 100$
-- **$\Delta \sigma^0$ (SAR Backscatter Delta)**: $\Delta \sigma^0 = \sigma^0_{\text{post}} - \sigma^0_{\text{pre}} \quad (\text{dB})$
-- **FFSI (Flash Flood Susceptibility Index)**: $\text{FFSI} = \mathbf{w}^T \mathbf{x} + b \quad [0, 100]$
+
+- **NDVI (Normalized Difference Vegetation Index)**: Photosynthetic canopy vigor $[0.0, 1.0]$
+  $$
+  \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}
+  $$
+
+- **MNDWI (Modified Normalized Difference Water Index)**: Surface water expansion $[-1.0, 1.0]$
+  $$
+  \text{MNDWI} = \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}}
+  $$
+
+- **NBR (Normalized Burn Ratio)**: Fire scar delineation and burn severity
+  $$
+  \text{NBR} = \frac{\text{NIR} - \text{SWIR}}{\text{NIR} + \text{SWIR}}
+  $$
+
+- **VCI (Vegetation Condition Index)**: Relative vegetative health against multi-year baseline extremes $[0, 100]$
+  $$
+  \text{VCI} = \frac{\text{NDVI} - \text{NDVI}_{\min}}{\text{NDVI}_{\max} - \text{NDVI}_{\min}} \times 100
+  $$
+
+- **$\Delta \sigma^0$ (SAR Backscatter Delta)**: Sentinel-1 SAR backscatter attenuation isolating standing water
+  $$
+  \Delta \sigma^0 = \sigma^0_{\text{post}} - \sigma^0_{\text{pre}} \quad (\text{dB})
+  $$
+
+- **FFSI (Flash Flood Susceptibility Index)**: Composite multi-factor watershed risk score $[0, 100]$
+  $$
+  \text{FFSI} = \mathbf{w}^T \mathbf{x} + b
+  $$
 
 ---
 
