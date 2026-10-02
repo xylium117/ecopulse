@@ -146,6 +146,8 @@ graph TD
         S1["Sentinel-1 SAR GRD"]
         S2["Sentinel-2 MSI Harmonized"]
         L8["Landsat 8/9 Surface Reflectance"]
+        STURM["STURM-FLOOD (Multi-Sensor Benchmark)"]
+        GDACS["GDACS FloodDET (GeoTIFF Baselines & Ocean Mask)"]
         CSV["Empirical Watershed Dataset (train.csv)"]
     end
 
@@ -165,6 +167,8 @@ graph TD
     GEE --> S2
     GEE --> L8
     Hydro --> CSV
+    Hydro --> STURM
+    Hydro --> GDACS
 ```
 
 ### Data Flow Overview
@@ -182,7 +186,13 @@ Image arrays are normalized, converted into structured tensors, and passed throu
 | **COPERNICUS/S1_GRD** | Sentinel-1 C-Band SAR | 10 m | Flood inundation, surface water expansion, backscatter change |
 | **COPERNICUS/S2_SR_HARMONIZED** | Sentinel-2 MSI | 10 m – 20 m | Multispectral vegetation indices, burn scar differencing, water extraction |
 | **LANDSAT/LC08/C02/T1_L2** | Landsat 8 OLI/TIRS | 30 m | Long-term thermal and multispectral surface reflectance validation |
+| **STURM-FLOOD** | Spatio-Temporal SAR / MSI Benchmark | 10 m / Multi-Resolution | Multi-sensor inundation benchmark calibration and cross-sensor flood validation |
+| **GDACS FloodDET** | Global Disaster Alert & Coordination System | Gridded GeoTIFF / Global | Climatological baseline statistics (`AveragesAndSd`), calibration grids, and global ocean exclusion mask (`oceanmask.tif`) |
 | **Empirical Hydrological Corpus** | Field & Gauge Records (`train.csv`) | Basin Level | Supervised training of multivariate flash flood susceptibility regression |
+
+### Climatological & Benchmark Datasets
+- **STURM-FLOOD Benchmark Suite**: Multi-modal spatio-temporal benchmark combining Sentinel-1 SAR backscatter and Sentinel-2 MSI optical channels to calibrate inundation probability under heavy cloud and varying land-cover conditions.
+- **GDACS FloodDET Climatology & Masks**: Global Disaster Alert and Coordination System (GDACS) spatial layers utilized in `server/train.py` for climatological baseline mean/standard-deviation variance estimation (`AveragesAndSd`), dynamic focal edge boosting ($1.50\text{--}1.85\times$), and global terrestrial vs. marine surface masking (`oceanmask.tif`).
 
 ### Sensor Bands and Measurements
 - **SAR Backscatter ($\sigma^0$)**: Dual-polarization VV and VH backscatter measurements used to penetrate cloud cover and distinguish calm open water (specular reflection) from rough terrain.
