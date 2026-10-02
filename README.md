@@ -204,23 +204,14 @@ Image arrays are normalized, converted into structured tensors, and passed throu
 
 ### Derived Biophysical Products
 
-$$
-\begin{aligned}
-\text{NDVI} &= \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} \\[8pt]
-\text{MNDWI} &= \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}} \\[8pt]
-\text{NBR} &= \frac{\text{NIR} - \text{SWIR}}{\text{NIR} + \text{SWIR}} \\[8pt]
-\text{VCI} &= \frac{\text{NDVI} - \text{NDVI}_{\min}}{\text{NDVI}_{\max} - \text{NDVI}_{\min}} \times 100 \\[8pt]
-\Delta \sigma^0 &= \sigma^0_{\text{post}} - \sigma^0_{\text{pre}} \quad (\text{dB}) \\[8pt]
-\text{FFSI} &= \mathbf{w}^T \mathbf{x} + b \quad [0, 100]
-\end{aligned}
-$$
-
-- **NDVI (Normalized Difference Vegetation Index)**: Photosynthetic canopy vigor $[0.0, 1.0]$.
-- **MNDWI (Modified Normalized Difference Water Index)**: Surface water expansion $[-1.0, 1.0]$.
-- **NBR (Normalized Burn Ratio)**: Wildfire perimeter and burn severity delineation.
-- **VCI (Vegetation Condition Index)**: Relative vegetative health normalized against multi-year historical extremes $[0, 100]$.
-- **$\Delta \sigma^0$ (SAR Backscatter Delta)**: Sentinel-1 SAR backscatter attenuation isolating cloud-penetrating standing water.
-- **FFSI (Flash Flood Susceptibility Index)**: Composite multi-factor hydrological watershed vulnerability score $[0, 100]$.
+| Index / Product | Mathematical Formulation | Description |
+| :--- | :--- | :--- |
+| **NDVI** (Normalized Difference Vegetation Index) | `(NIR - Red) / (NIR + Red)` | Photosynthetic canopy vigor indicator scaled [0.0, 1.0] |
+| **MNDWI** (Modified Normalized Difference Water Index) | `(Green - SWIR) / (Green + SWIR)` | Optical surface water and moisture index scaled [-1.0, 1.0] |
+| **NBR** (Normalized Burn Ratio) | `(NIR - SWIR) / (NIR + SWIR)` | Wildfire perimeter and burn scar severity index |
+| **VCI** (Vegetation Condition Index) | `((NDVI - NDVI_min) / (NDVI_max - NDVI_min)) * 100` | Relative vegetative health normalized against historical extremes [0, 100] |
+| **Δσ⁰** (SAR Backscatter Delta) | `σ⁰_post - σ⁰_pre (dB)` | Sentinel-1 SAR backscatter attenuation isolating standing water |
+| **FFSI** (Flash Flood Susceptibility Index) | `wᵀx + b` | Multi-factor hydrological watershed susceptibility score [0, 100] |
 
 ---
 
