@@ -276,8 +276,12 @@ flowchart LR
 - **Input Tensor Dimensions**: `(Batch, Time=2, Height=256, Width=256, Channels=3)`
 - **Loss Computation**: Continuous canopy loss is derived from the segmented burn area multiplied by regional biomass density factors ($B_d \approx 120\text{--}280\,\text{t/ha}$).
 - **Atmospheric Emission Proxy**: Net $\text{CO}_2$ release ($E_{\text{CO}_2}$) is estimated using stoichiometric combustion assumptions:
-  $$E_{\text{CO}_2} = A_{\text{burn}} \times B_d \times C_f \times 3.67$$
-  where $A_{\text{burn}}$ is burned area, $C_f$ is combustion completeness ($\sim 0.45$), and $3.67$ is the carbon-to-$\text{CO}_2$ molar ratio.
+
+$$
+E_{\text{CO}_2} = A_{\text{burn}} \times B_d \times C_f \times 3.67
+$$
+
+where $A_{\text{burn}}$ is burned area, $B_d$ is biomass density ($120\text{--}280\,\text{t/ha}$), $C_f$ is combustion completeness ($\sim 0.45$), and $3.67$ is the $\text{C}\rightarrow\text{CO}_2$ stoichiometric molar conversion ratio.
 
 ---
 
@@ -354,9 +358,9 @@ flowchart TD
     D2 --> D1
     D1 --> Output
 
-    E3 -.->|Skip Connection (t₁)| D3
-    E2 -.->|Skip Connection (t₁)| D2
-    E1 -.->|Skip Connection (t₁)| D1
+    E3 -.->|"Skip Connection (t1)"| D3
+    E2 -.->|"Skip Connection (t1)"| D2
+    E1 -.->|"Skip Connection (t1)"| D1
 ```
 
 | Component | Architecture Specification | Description |
@@ -413,11 +417,15 @@ flowchart TD
 
 #### Mathematical Formulation
 
-$$\text{FFSI} = \mathbf{w}^T \mathbf{x} + b$$
+$$
+\text{FFSI} = \mathbf{w}^T \mathbf{x} + b
+$$
 
 Subject to the $L_2$-regularized objective:
 
-$$\min_{\mathbf{w}, b} \sum_{i=1}^{N} \gamma_i \left( y_i - (\mathbf{w}^T \mathbf{x}_i + b) \right)^2 + \lambda \|\mathbf{w}\|_2^2$$
+$$
+\min_{\mathbf{w}, b} \sum_{i=1}^{N} \gamma_i \left( y_i - (\mathbf{w}^T \mathbf{x}_i + b) \right)^2 + \lambda \|\mathbf{w}\|_2^2
+$$
 
 where $\gamma_i$ represents sample-adaptive focal weights boosting extreme precipitation and high deforestation edge cases ($\gamma_i = 1.65$ when $\text{MonsoonIntensity} > 6.5$ or $\text{Deforestation} > 6.0$), and $\lambda = 5 \times 10^{-4}$.
 
