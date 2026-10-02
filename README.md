@@ -218,25 +218,28 @@ Image arrays are normalized, converted into structured tensors, and passed throu
 
 Flash flood and standing water detection in EcoPulse combines active microwave sensing with optical spectral gating to produce flood masks and downstream hydrological metrics.
 
-```
-Sentinel-1 SAR (C-Band)
-         │
-         ├── Pre-Event Backscatter (σ⁰_pre)
-         ├── Post-Event Backscatter (σ⁰_post)
-         │
-         ▼
-Backscatter Change Detection (Δσ⁰ < -2.5 dB)
-         │
-         ├── Optical MNDWI Water Confirmation
-         ├── Global Ocean & Permanent Water Masking
-         └── Spatial Connected-Component Filtering
-         │
-         ▼
-Pixel-Level Flood Inundation Mask
-         │
-         ▼
-Hydro-Kinematic Metric Computation
-(Inundated Area, Water Expansion Ratio, Submerged Cropland)
+```mermaid
+flowchart TD
+    S1["Sentinel-1 SAR C-Band Observation"]
+    Pre["Pre-Event Backscatter (σ⁰_pre)"]
+    Post["Post-Event Backscatter (σ⁰_post)"]
+    
+    Diff["Backscatter Change Detection<br/>(Δσ⁰ &lt; -2.5 dB)"]
+    
+    MNDWI["Optical MNDWI Water Confirmation"]
+    OceanMask["GDACS & Terrestrial Ocean Masking"]
+    Filter["Connected-Component Spatial Filter"]
+    
+    Mask["Pixel-Level Flood Inundation Mask"]
+    
+    Metrics["Hydro-Kinematic Metric Computation<br/>• Inundated Surface Area (ha)<br/>• Water Expansion Ratio<br/>• Submerged Cropland (ha)<br/>• SAR Backscatter Drop (dB)"]
+    
+    S1 --> Pre
+    S1 --> Post
+    Pre & Post --> Diff
+    Diff --> MNDWI & OceanMask & Filter
+    MNDWI & OceanMask & Filter --> Mask
+    Mask --> Metrics
 ```
 
 > **Note on Detection vs. Susceptibility Modeling**: Observational flood delineation (SAR/MNDWI change detection) quantifies *currently standing surface water*, whereas the Hydrological Risk Model computes *antecedent and predictive watershed susceptibility (FFSI)* based on terrain drainage, soil saturation, and rainfall anomalies.
@@ -247,14 +250,27 @@ Hydro-Kinematic Metric Computation
 
 Wildfire analysis uses bi-temporal multispectral pairs acquired before and after fire progression.
 
-```
-Pre-Event MSI (t₀)  ──┐
-                      ├─► Temporal Feature Stacking ─► Spatio-Temporal U-Net ─► Binary Burn Scar Mask
-Post-Event MSI (t₁) ──┘
-                                                                                      │
-                                                                                      ├── Burned Area (Hectares)
-                                                                                      ├── Canopy Loss Percentage (%)
-                                                                                      └── Estimated CO₂ Emissions (kt)
+```mermaid
+flowchart LR
+    subgraph Inputs ["Bi-Temporal Ingestion"]
+        Pre["Pre-Event MSI (t₀)<br/>(256 × 256 × 3)"]
+        Post["Post-Event MSI (t₁)<br/>(256 × 256 × 3)"]
+    end
+
+    Stack["Temporal Feature Stacking<br/>(Batch, Time=2, H=256, W=256, C=3)"]
+    UNet["Spatio-Temporal U-Net<br/>(TimeDistributed CNN + ConvLSTM2D)"]
+    BurnMask["Binary Burn Scar Mask<br/>(256 × 256 × 1)"]
+
+    subgraph Metrics ["Biomass & Atmospheric Loss Quantification"]
+        Area["Burned Area Extent (ha)"]
+        Canopy["Canopy Loss Percentage (%)"]
+        CO2["Estimated CO₂ Emissions (kt)"]
+    end
+
+    Pre & Post --> Stack
+    Stack --> UNet
+    UNet --> BurnMask
+    BurnMask --> Area & Canopy & CO2
 ```
 
 - **Input Tensor Dimensions**: `(Batch, Time=2, Height=256, Width=256, Channels=3)`
@@ -302,21 +318,45 @@ The platform computes a carbon flux status descriptor based on mean vegetative c
 
 The core deep learning segmentation architecture is designed to capture temporal transitions directly across multi-date satellite scenes:
 
-```
-Pre-Event Observation  (256x256x3) ──┐
-                                     ├── TimeDistributed Encoder Pyramid (64 -> 128 -> 256 filters)
-Post-Event Observation (256x256x3) ──┘
-                                                       │
-                                                       ▼
-                                            ConvLSTM2D Bottleneck
-                                         (512 filters, temporal kernel)
-                                                       │
-                                                       ▼
-                                         U-Net Decoder with Transpose Convolutions
-                                         & Skip Connections from Post-Event Features
-                                                       │
-                                                       ▼
-                                      Sigmoid Output Layer (256x256x1 Mask)
+```mermaid
+flowchart TD
+    subgraph Inputs ["Temporal Input Tensor"]
+        T0["Pre-Event Observation (t₀)<br/>(256 × 256 × 3)"]
+        T1["Post-Event Observation (t₁)<br/>(256 × 256 × 3)"]
+    end
+
+    subgraph Encoder ["TimeDistributed Hierarchical Encoder Pyramid"]
+        E1["TimeDistributed Conv2D Block 1 (64 Filters) + MaxPool"]
+        E2["TimeDistributed Conv2D Block 2 (128 Filters) + MaxPool"]
+        E3["TimeDistributed Conv2D Block 3 (256 Filters) + MaxPool"]
+    end
+
+    subgraph Bottleneck ["Spatio-Temporal Temporal Bottleneck"]
+        LSTM["ConvLSTM2D Layer<br/>(512 Filters, 3×3 Kernel, return_sequences=False)"]
+        BN["Batch Normalization"]
+    end
+
+    subgraph Decoder ["Decoder with Post-Event Skip Connections"]
+        D3["Conv2DTranspose (256) + Skip Concat (t₁ E3) + ConvBlock"]
+        D2["Conv2DTranspose (128) + Skip Concat (t₁ E2) + ConvBlock"]
+        D1["Conv2DTranspose (64) + Skip Concat (t₁ E1) + ConvBlock"]
+    end
+
+    Output["Sigmoid 1×1 Conv Output<br/>Pixel-Level Probability Mask (256 × 256 × 1)"]
+
+    T0 & T1 --> E1
+    E1 --> E2
+    E2 --> E3
+    E3 --> LSTM
+    LSTM --> BN
+    BN --> D3
+    D3 --> D2
+    D2 --> D1
+    D1 --> Output
+
+    E3 -.->|Skip Connection (t₁)| D3
+    E2 -.->|Skip Connection (t₁)| D2
+    E1 -.->|Skip Connection (t₁)| D1
 ```
 
 | Component | Architecture Specification | Description |
@@ -335,20 +375,18 @@ Post-Event Observation (256x256x3) ──┘
 
 EcoPulse incorporates a multivariate Ridge regression model trained on basin observation records (`server/data/train.csv`) to predict watershed-level Flash Flood Susceptibility Index (FFSI) scores:
 
-```
-20 Environmental & Anthropogenic Variables
-                    │
-                    ▼
-  Sample-Adaptive Extreme-Condition Weighting
-                    │
-                    ▼
-     Ridge Regression (L2 Regularization)
-                    │
-                    ▼
-      Predicted FFSI Score [0, 100]
-                    │
-                    ▼
-    Categorical Risk Level Assignment
+```mermaid
+flowchart TD
+    Vars["20 Environmental & Anthropogenic Watershed Variables<br/>(Monsoon Intensity, Drainage, Deforestation, Siltation, Urbanization, etc.)"]
+    Focal["Sample-Adaptive Focal Weighting (γ = 1.65)<br/>Boosts Extreme Monsoon (&gt;6.5) & Deforestation (&gt;6.0)"]
+    Ridge["L2-Regularized Ridge Regression Solver<br/>w = (XᵀX + λI)⁻¹ Xᵀy"]
+    FFSI["Continuous Flash Flood Susceptibility Index<br/>FFSI = wᵀx + b ∈ [0, 100]"]
+    Class["Categorical Hazard Classification<br/>(CRITICAL | HIGH | MEDIUM | LOW | NONE)"]
+
+    Vars --> Focal
+    Focal --> Ridge
+    Ridge --> FFSI
+    FFSI --> Class
 ```
 
 #### Feature Vector $\mathbf{x} \in \mathbb{R}^{20}$
@@ -396,16 +434,26 @@ where $\gamma_i$ represents sample-adaptive focal weights boosting extreme preci
 ### Spatial Filtering and Ocean Masking
 To prevent false-positive hazard classifications over marine environments, EcoPulse integrates a multi-tier bounding filter (`is_land_region` in `server/gee_utils.py`). Coordinates falling outside recognized land boundaries or inside major marine polygons (e.g., South Pacific, North Atlantic, Indian Ocean, Mediterranean, Bay of Bengal, Gulf of Mexico) are assigned zero susceptibility and rendered transparent.
 
-```
-Incoming Coordinates (Lat, Lon)
-               │
-               ├── Extreme Polar Boundary Check (|Lat| > 82° or Lat < -58°)
-               ├── Land Exception Polygons (Islands / Atolls)
-               ├── Water Exclusion Polygons (Oceans, Inland Seas)
-               └── Terrestrial Land Bounding Polygons
-               │
-               ▼
-[ Terrestrial Land: Process Hazard ] OR [ Open Water: Return Zero Mask ]
+```mermaid
+flowchart TD
+    Coords["Incoming Query Coordinates (Latitude, Longitude)"]
+    Polar["Polar Extremity Gating (|Lat| > 82° or Lat < -58°)"]
+    LandExceptions["Land Exception Evaluation<br/>(Islands & Coastal Archipelagos)"]
+    WaterExclusions["Water Exclusion Boundaries<br/>(Oceans, Seas, Marine Polygons)"]
+    LandBoxes["Terrestrial Land Mass Boundaries"]
+
+    ResultLand["Terrestrial Land Surface<br/>(Execute Hazard Detection & Compute Indices)"]
+    ResultWater["Marine / Open Ocean Region<br/>(Zero Susceptibility & Transparent Mask)"]
+
+    Coords --> Polar
+    Polar -->|Valid Range| LandExceptions
+    Polar -->|Out of Bounds| ResultWater
+    LandExceptions -->|Match Exception| ResultLand
+    LandExceptions -->|No Match| WaterExclusions
+    WaterExclusions -->|Match Marine Polygon| ResultWater
+    WaterExclusions -->|No Match| LandBoxes
+    LandBoxes -->|Inside Land Boundary| ResultLand
+    LandBoxes -->|Outside Boundary| ResultWater
 ```
 
 ### Tile Generation
@@ -700,15 +748,23 @@ cp .env.example .env
 
 EcoPulse checks for Earth Engine credentials in the following order:
 
-```
-Runtime GEE Initialization
-            │
-            ├── 1. Check GEE_SERVICE_ACCOUNT_JSON (Raw JSON environment variable)
-            ├── 2. Check GEE_CREDENTIALS_PATH (Local service account JSON key file)
-            ├── 3. Check GEE_API_KEY / Default Google Cloud project credentials
-            │
-            ▼
-[ Credentials Valid: Live GEE Mode ] OR [ Unauthenticated: High-Fidelity Synthetic Mode ]
+```mermaid
+flowchart TD
+    Start["Runtime Earth Engine Initialization (_try_init_ee)"]
+    CheckJSON{"1. Raw Service Account JSON<br/>(GEE_SERVICE_ACCOUNT_JSON)?"}
+    CheckFile{"2. Service Account Key File<br/>(GEE_CREDENTIALS_PATH)?"}
+    CheckAPI{"3. Google Cloud API Key / Project<br/>(GEE_API_KEY / GEE_PROJECT)?"}
+    
+    LiveMode["Live Google Earth Engine Mode<br/>• Sentinel-1 SAR GRD<br/>• Sentinel-2 MSI Harmonized<br/>• Landsat-8/9 Surface Reflectance"]
+    SyntheticMode["High-Fidelity Synthetic Telemetry Mode<br/>• Deterministic Coordinate-Seeded Distributions<br/>• Offline Dynamic Raster Rendering"]
+
+    Start --> CheckJSON
+    CheckJSON -->|Found & Valid| LiveMode
+    CheckJSON -->|Not Found| CheckFile
+    CheckFile -->|Found & Valid| LiveMode
+    CheckFile -->|Not Found| CheckAPI
+    CheckAPI -->|Found & Valid| LiveMode
+    CheckAPI -->|Not Found / Unauthenticated| SyntheticMode
 ```
 
 To configure Service Account authentication:
@@ -785,16 +841,19 @@ The static frontend (`client/`) is configured for zero-configuration static host
 
 Deploy the FastAPI backend container to cloud providers such as Render, Railway, AWS ECS, or Google Cloud Run:
 
-```
-Static Client (GitHub Pages / CDN)
-              │
-              │ Asynchronous REST & Tile Requests
-              ▼
-    Cloud API Container (Render / Cloud Run)
-              │
-              ├── Spatio-Temporal ML Inference
-              ├── Earth Engine Telemetry Ingestion
-              └── Dynamic XYZ Raster Tile Engine
+```mermaid
+flowchart TD
+    Client["Static Client Frontend<br/>(GitHub Pages / CDN)"]
+    API["FastAPI Backend Container<br/>(Render / Cloud Run / Docker)"]
+    
+    ML["Spatio-Temporal ML Inference<br/>(U-Net & Hydrological Models)"]
+    EO["Earth Engine Data Ingestion<br/>(Sentinel-1/2, Landsat)"]
+    Tiles["Dynamic XYZ Raster Tile Engine<br/>(Mercator 256×256 PNGs)"]
+
+    Client <-->|Asynchronous REST & Tile Requests| API
+    API --> ML
+    API --> EO
+    API --> Tiles
 ```
 
 A deployment template is included in [render.yaml](render.yaml):
